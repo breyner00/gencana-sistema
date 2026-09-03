@@ -391,11 +391,13 @@
                 return alert("El nombre y la fecha de inicio son obligatorios.");
             }
 
-            // Aseguramos formato de fecha completo que exige FastAPI (YYYY-MM-DDTHH:mm:ss)
             const formatoFecha = (fecha) => {
                 if (!fecha) return null;
                 return fecha.includes('T') ? fecha : `${fecha}T00:00:00`;
             };
+
+            // Si no pone fecha de fin, se le asigna la misma fecha de inicio para cumplir con el servidor
+            const fechaFinalDefinitiva = fechaFin ? formatoFecha(fechaFin) : formatoFecha(fechaInicio);
 
             const payload = {
                 nombre_evento: nombre,
@@ -403,7 +405,7 @@
                 costo: parseFloat(costo) || 0.0,
                 tarifas: tarifas || "General",
                 fecha_inicio: formatoFecha(fechaInicio),
-                fecha_fin: formatoFecha(fechaFin),
+                fecha_fin: fechaFinalDefinitiva,
                 requisitos: requisitos || "Ninguno"
             };
 
@@ -426,7 +428,6 @@
                     cargarEventosAdmin();
                 } else {
                     const errData = await res.json();
-                    // Extraemos limpiamente el mensaje de error de FastAPI sin mostrar objetos
                     let mensajeError = "Revise los datos";
                     if (errData.detail) {
                         if (Array.isArray(errData.detail)) {
