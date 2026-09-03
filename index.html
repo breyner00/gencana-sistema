@@ -392,12 +392,9 @@
             }
 
             const formatoFecha = (fecha) => {
-                if (!fecha) return null;
+                if (!fecha) return "";
                 return fecha.includes('T') ? fecha : `${fecha}T00:00:00`;
             };
-
-            // Si no pone fecha de fin, se le asigna la misma fecha de inicio para cumplir con el servidor
-            const fechaFinalDefinitiva = fechaFin ? formatoFecha(fechaFin) : formatoFecha(fechaInicio);
 
             const payload = {
                 nombre_evento: nombre,
@@ -405,7 +402,7 @@
                 costo: parseFloat(costo) || 0.0,
                 tarifas: tarifas || "General",
                 fecha_inicio: formatoFecha(fechaInicio),
-                fecha_fin: fechaFinalDefinitiva,
+                fecha_fin: fechaFin ? formatoFecha(fechaFin) : formatoFecha(fechaInicio),
                 requisitos: requisitos || "Ninguno"
             };
 
