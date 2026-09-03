@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Escáner Asistencia GENCANA</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 30px; background: #f9f9f9; }
+        #reader { width: 100%; max-width: 400px; margin: 0 auto; }
+        .alternativa { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }
+        input, button { padding: 10px; margin: 5px; font-size: 16px; }
+        #lista-inscritos-container { max-width: 500px; margin: 30px auto; text-align: left; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
+        #lista-inscritos li { padding: 12px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; display: flex; justify-content: space-between; }
+        .pendiente { background: #fff3cd; color: #856404; border-color: #ffeeba !important; }
+        .confirmado { background: #d4edda; color: #155724; border-color: #c3e6cb !important; }
+    </style>
+</head>
+<body>
+    <h2>Control Logístico GENCANA</h2>
+    
+    <div style="margin-bottom: 20px;">
+        <label><strong>Seleccione el Evento Actual:</strong></label><br>
+        <select id="select-evento-escaner" style="padding: 10px; margin-top: 5px; width: 80%; max-width: 300px;" onchange="cargarInscritos()">
+            <option value="">Cargando eventos...</option>
+        </select>
+    </div>
+
+    <div id="reader"></div>
+
+    <div class="alternativa">
+        <p>¿Sin código QR? Ingresa la cédula o código:</p>
+        <input type="text" id="cedulaInput" placeholder="Ej: gnc300">
+        <button onclick="registrarManual()">Registrar</button>
+    </div>
+    
+    <h3 id="resultado"></h3>
+
+    <!-- Contenedor dinámico de la lista de inscritos -->
+    <div id="lista-inscritos-container">
+        <h3 style="margin-top: 0;">Lista de Inscritos</h3>
+        <ul id="lista-inscritos" style="list-style: none; padding: 0;"></ul>
+    </div>
+
+    <script>
+        async function cargarEventosEscaner() {
+            try {
+                const res = await fetch("http://127.0.0.1:8000/eventos/");
+                const eventos = await res.json();
+                const select = document.getElementById('select-evento-escaner');
+                select.innerHTML = '<option value="">Seleccione un Evento...</option>';
+                eventos.forEach(ev => {
+                    select.innerHTML += `<option value="${ev.ID_Evento}">${ev.Nombre_Evento}</option>`;
+                });
+            } catch (error) {
+                document.getElementById("resultado").innerText = "❌ Error cargando los eventos.";
+            }
+        }
+        window.onload = cargarEventosEscaner;
+
+        // Función para cargar la lista de usuarios al seleccionar un evento
+        async function cargarInscritos() {
+            const idEvento = document.getElementById('select-evento-escaner').value;
+            const container = document.getElementById('lista-inscritos-container');
+            const lista = document.getElementById('lista-inscritos');
+            
+            if (!idEvento) {
+                container.style.display = 'none';
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/eventos/${idEvento}/inscritos`);
+                const inscritos = await res.json();
+                
+                lista.innerHTML = "";
+                if (inscritos.length === 0) {
+                    lista.innerHTML = "<li style='background:#f4f4f4;'>No hay inscritos aprobados aún.</li>";
+                } else {
+                    inscritos.forEach(ins => {
+                        const clase = ins.Asistio > 0 ? 'confirmado' : 'pendiente';
+                        const icono = ins.Asistio > 0 ? '✅' : '⏳';
+                        lista.innerHTML += `
+                            <li id="participante-${ins.ID_Participante}" class="${clase}">
+                                <span>${ins.Nombres}</span>
+                                <span>${icono}</span>
+                            </li>
+                        `;
+                    });
+                }
+                container.style.display = 'block';
+            } catch (error) {
+                console.error("Error al cargar la lista de inscritos.");
+            }
+        }
+
+        async function enviarAsistencia(payload) {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/asistencia/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                
+                const resultadoUI = document.getElementById("resultado");
+                
+                if (response.ok) {
+                    resultadoUI.innerHTML = `<span style="color: green;">✅ ${data.mensaje}</span>`;
+                    
+                    // Pintar de verde automáticamente en la lista de abajo
+                    const fila = document.getElementById(`participante-${data.id_participante}`);
+                    if (fila) {
+                        fila.className = 'confirmado';
+                        fila.innerHTML = fila.innerHTML.replace('⏳', '✅');
+                    }
+                } else {
+                    // Mostrar los mensajes de error exactos del backend (ya confirmó, no inscrito, etc.)
+                    resultadoUI.innerHTML = `<span style="color: red;">${data.detail}</span>`;
+                }
+            } catch (error) {
+                document.getElementById("resultado").innerText = "❌ Error de conexión al servidor.";
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            const idEvento = document.getElementById('select-evento-escaner').value;
+            if (!idEvento) return alert("¡Seleccione un evento primero!");
+            
+            document.getElementById("resultado").innerText = "⏳ Verificando QR...";
+            enviarAsistencia({ evento_id: parseInt(idEvento), qr_data: decodedText });
+        }
+
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        html5QrcodeScanner.render(onScanSuccess);
+
+        function registrarManual() {
+            const idEvento = document.getElementById('select-evento-escaner').value;
+            if (!idEvento) return alert("¡Seleccione un evento primero!");
+            
+            const cedula = document.getElementById("cedulaInput").value;
+            if(!cedula) return alert("Ingresa un número válido");
+            
+            document.getElementById("resultado").innerText = "⏳ Verificando código...";
+            enviarAsistencia({ evento_id: parseInt(idEvento), numero_identificacion: cedula });
+        }
+    </script>
+</body>
+</html>

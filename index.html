@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comunidad GENCANA</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --primary-orange: #ff6f00;
+            --accent-red: #d32f2f;
+            --accent-blue: #2979ff;
+            --text-light: #e0e0e0;
+            --text-main: #ffffff;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-light);
+            margin: 0; 
+            padding: 0;
+        }
+
+        .container { 
+            max-width: 850px; 
+            margin: 30px auto; 
+            padding: 25px; 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5); 
+            border: 1px solid #333;
+        }
+
+        .hidden { display: none; }
+
+        .btn { 
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-red)); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-danger { background: var(--accent-red); }
+        .btn-blue { background: var(--accent-blue); }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; color: var(--primary-orange); font-weight: 600; }
+        .input-group input, .input-group select, .input-group textarea { 
+            width: 100%; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            background: #2a2a2a; 
+            border: 1px solid #444; 
+            color: white;
+            border-radius: 6px; 
+        }
+
+        .alert-banner { 
+            background: linear-gradient(90deg, var(--primary-orange), var(--accent-red)); 
+            color: white; 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 10px rgba(255,111,0,0.3);
+        }
+
+        .feed-post { 
+            border: 1px solid #333; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin-bottom: 20px; 
+            background: #242424; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        .media-content {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: contain;
+            border-radius: 6px;
+            margin-top: 10px;
+            background: #000;
+        }
+
+        .nav-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: #1a1a1a; 
+            border-bottom: 3px solid var(--primary-orange);
+            color: white; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            margin-bottom: 25px; 
+        }
+
+        .branding-title {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-orange), var(--accent-red), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .flex-date { display: flex; gap: 10px; }
+        
+        .profile-pic-container {
+            width: 110px; 
+            height: 110px; 
+            background: #333; 
+            border-radius: 50%; 
+            margin: 0 auto 10px auto; 
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <!-- VISTA DE LOGIN Y REGISTRO -->
+    <div id="auth-view" class="container">
+        <h1 class="branding-title">MOVIMIENTO JUVENIL GENCANA</h1>
+        <div id="login-form">
+            <h3>Iniciar Sesión</h3>
+            <div class="input-group">
+                <label>Número de Identificación GENCANA</label>
+                <input type="text" id="login-id" placeholder="Ingresa tu cédula o número único" onkeydown="if(event.key === 'Enter') iniciarSesion()">
+            </div>
+            <button class="btn" onclick="iniciarSesion()">Entrar</button>
+            <hr style="border-color: #333; margin: 20px 0;">
+            <button class="btn btn-blue" onclick="toggleView('register-form', 'login-form')">Crear cuenta nueva</button>
+        </div>
+
+        <div id="register-form" class="hidden">
+            <h3>Registro de Miembro GENCANA</h3>
+            <div class="input-group">
+                <label>Nombres Completos</label>
+                <input type="text" id="reg-nombres">
+            </div>
+            <div class="input-group">
+                <label>Fecha de Nacimiento</label>
+                <input type="date" id="reg-nacimiento" required>
+            </div>
+            <div class="input-group">
+                <label>¿Desde cuándo perteneces al movimiento?</label>
+                <div class="flex-date">
+                    <input type="number" id="reg-year" placeholder="Año (Ej: 2021)" required>
+                    <select id="reg-month">
+                        <option value="">Mes (Opcional)</option>
+                        <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
+                        <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
+                        <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
+                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn" onclick="registrarUsuario()">Registrarme</button>
+            <button class="btn btn-danger" style="margin-top: 10px;" onclick="toggleView('login-form', 'register-form')">Volver</button>
+        </div>
+    </div>
+
+    <!-- VISTA DEL PARTICIPANTE (MURO) -->
+    <div id="member-view" class="container hidden">
+        <div class="nav-bar">
+            <span>💙 GENCANA | ¡Hola, <span id="user-name" style="color: var(--primary-orange); font-weight: bold;">Participante</span>!</span>
+            <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+        </div>
+        
+        <div id="celebration-banner" class="alert-banner hidden"></div>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <h3>📅 Próximos Eventos y Actividades</h3>
+                <div id="feed-eventos-container"></div>
+                
+                <h3>📖 Contenido y Multimedia GENCANA</h3>
+                <div id="feed-publicaciones-container"></div>
+            </div>
+            
+            <div style="width: 260px; text-align: center; border-left: 1px solid #333; padding-left: 15px;">
+                <h3>Mi Perfil GENCANA</h3>
+                <div class="profile-pic-container" id="profile-pic-box">
+                    <span style="font-size: 12px; color: #aaa;">Sin Foto</span>
+                </div>
+                
+                <input type="file" id="foto-input" accept="image/*" style="display: none;" onchange="subirFotoPerfil(event)">
+                <button class="btn btn-blue" id="btn-foto" style="width: 100%; margin-top: 5px; padding: 6px; font-size: 13px;" onclick="document.getElementById('foto-input').click()">Subir foto de perfil</button>
+                
+                <hr style="border-color: #333; margin: 15px 0;">
+                <p style="font-size: 14px; color: var(--primary-orange); font-weight: bold;">Mi Credencial QR</p>
+                
+                <div style="width: 140px; height: 140px; background: white; padding: 5px; border-radius: 6px; margin: 0 auto; display: flex; align-items: center; justify-content: center;" id="qr-wrapper">
+                    <span>Cargando...</span>
+                </div>
+
+                <button class="btn btn-danger" style="width: 100%; margin-top: 10px; padding: 6px; font-size: 13px;" onclick="descargarQR()">Descargar QR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA DEL ADMINISTRADOR -->
+    <div id="admin-view" class="container hidden">
+        <div class="nav-bar" style="border-bottom-color: var(--accent-red);">
+            <span>🛡️ Panel de Administración GENCANA</span>
+            <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+        </div>
+        
+        <h3>Crear Evento con Publicidad</h3>
+        <div class="input-group"><label>Nombre del Evento</label><input type="text" id="admin-nombre-evento"></div>
+        <div class="input-group"><label>Tarifas o Precios (Ej. General: $3.50 | VIP: $5.00)</label><input type="text" id="admin-tarifas-evento"></div>
+        <div class="input-group"><label>Costo Base general ($)</label><input type="number" id="admin-costo-evento" value="0.00"></div>
+        <div class="input-group"><label>Fecha de Inicio</label><input type="date" id="admin-fecha-inicio"></div>
+        <div class="input-group"><label>Fecha de Fin (Opcional si dura más de un día)</label><input type="date" id="admin-fecha-fin"></div>
+        <div class="input-group"><label>Requisitos y Detalles</label><textarea id="admin-requisitos-evento"></textarea></div>
+        <div class="input-group"><label>Imagen Publicitaria (URL)</label><input type="text" id="admin-imagen-evento" placeholder="https://..."></div>
+        <button class="btn" onclick="publicarEvento()">Publicar Evento</button>
+        
+        <hr style="border-color: #333; margin: 25px 0;">
+        
+        <h3>📢 Compartir Contenido Multimedia</h3>
+        <div class="input-group"><label>Título de la Publicación</label><input type="text" id="admin-pub-titulo"></div>
+        <div class="input-group"><label>Descripción / Historia</label><textarea id="admin-pub-desc"></textarea></div>
+        
+        <!-- Campo actualizado para subir archivos desde la PC -->
+        <div class="input-group">
+            <label>Subir Archivo (Imagen o Video)</label>
+            <input type="file" id="admin-pub-archivo" accept="image/*,video/*">
+        </div>
+        <button class="btn btn-blue" onclick="publicarContenido()">Compartir en el Muro</button>
+
+        <hr style="border-color: #333; margin: 25px 0;">
+        <h3>Eventos Activos (Eliminación)</h3>
+        <div id="admin-lista-eventos"></div>
+
+        <hr style="border-color: #333; margin: 25px 0;">
+        <h3>Contenido Multimedia Activo (Eliminación)</h3>
+        <div id="admin-lista-publicaciones"></div>
+    </div>
+    <!-- PANEL FINANCIERO DEL ADMINISTRADOR -->
+    <div id="panel-admin-finanzas" style="display: none; padding: 20px; border: 2px solid var(--primary-orange); border-radius: 10px; margin-top: 30px; background: #121212;">
+        <h2 style="color: var(--primary-orange);">💰 Panel de Control Financiero</h2>
+        
+        <!-- Sección 1: Validar Pagos -->
+        <div style="margin-bottom: 30px;">
+            <h3 style="color: white;">Validar Inscripciones Pendientes</h3>
+            <button class="btn" onclick="cargarPendientes()">Actualizar Lista</button>
+            <div id="lista-pendientes" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- Sección 2: Registrar Gasto Operativo -->
+        <div style="background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #444;">
+            <h3 style="color: white; margin-top: 0;">Registrar Egreso (Gasto)</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <select id="gasto-id-evento" style="padding: 8px; border-radius: 5px; border: 1px solid #555; background: #333; color: white;">
+    <option value="">Selecciona un Evento...</option>
+</select>
+                <input type="text" id="gasto-categoria" placeholder="Categoría (Ej. Transporte, Comida)" style="padding: 8px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; flex: 1;">
+                <input type="number" id="gasto-monto" placeholder="Monto ($)" style="padding: 8px; border-radius: 5px; border: 1px solid #555; background: #333; color: white;">
+                <button class="btn" onclick="enviarGasto()">Descontar de Caja</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        let usuarioActualID = null;
+
+        function toggleView(showId, hideId) {
+            document.getElementById(hideId).classList.add('hidden');
+            document.getElementById(showId).classList.remove('hidden');
+        }
+
+        async function registrarUsuario() {
+            const nombres = document.getElementById('reg-nombres').value.trim();
+            const year = document.getElementById('reg-year').value.trim();
+            const month = document.getElementById('reg-month').value || "01";
+            const fechaNacimiento = document.getElementById('reg-nacimiento').value;
+
+            if (!nombres || !year || !fechaNacimiento) {
+                alert("Completa todos los campos obligatorios.");
+                return;
+            }
+
+            const payload = {
+                nombres: nombres,
+                numero_identificacion: "PENDIENTE", // Lo genera el backend
+                fecha_nacimiento: fechaNacimiento,
+                genero: "Otro",
+                telefono: "S/N",
+                fecha_ingreso: `${year}-${month}-01`
+            };
+
+            const response = await fetch(`${API_URL}/participantes/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`¡Registro exitoso! Tu Número de Identificación GENCANA asignado es: ${data.numero_asignado}. Guárdalo para iniciar sesión.`);
+                toggleView('login-form', 'register-form');
+                document.getElementById('login-id').value = data.numero_asignado;
+            } else {
+                alert("Error al registrar usuario.");
+            }
+        }
+
+        async function iniciarSesion() {
+            const idGencana = document.getElementById('login-id').value.trim();
+            if (!idGencana) return alert("Ingresa tu número de identificación.");
+
+            if (idGencana.toUpperCase() === "ADMIN999") {
+                document.getElementById('auth-view').classList.add('hidden');
+                document.getElementById('admin-view').classList.remove('hidden');
+                cargarEventosAdmin();
+                cargarPublicacionesAdmin();
+                document.getElementById('panel-admin-finanzas').style.display = 'block';
+                cargarEventosParaGastos();
+                return;
+            }
+            
+
+            try {
+                const response = await fetch(`${API_URL}/participantes/buscar/${idGencana}`);
+                if (response.ok) {
+                    const usuario = await response.json();
+                    usuarioActualID = usuario.id_participante;
+                    
+                    document.getElementById('auth-view').classList.add('hidden');
+                    document.getElementById('member-view').classList.remove('hidden');
+                    
+                    document.getElementById('user-name').innerText = usuario.nombres;
+                    document.getElementById('qr-wrapper').innerHTML = `<img src="${API_URL}/qrcodes/${usuario.id_participante}" alt="QR" style="width: 100%; height: 100%; object-fit: contain;">`;
+
+                    if (usuario.foto_url) {
+                        document.getElementById('profile-pic-box').innerHTML = `<img src="${usuario.foto_url}" alt="Perfil">`;
+                        document.getElementById('btn-foto').innerText = "Cambiar foto de perfil";
+                    } else {
+                        document.getElementById('profile-pic-box').innerHTML = `<span style="font-size: 12px; color: #aaa;">Sin Foto</span>`;
+                        document.getElementById('btn-foto').innerText = "Subir foto de perfil";
+                    }
+
+                    const banner = document.getElementById('celebration-banner');
+                    if (usuario.es_cumpleanos) {
+                        banner.innerText = "🎉 ¡Feliz Cumpleaños! GENCANA celebra tu vida hoy. 🎂";
+                        banner.classList.remove('hidden');
+                    } else if (usuario.es_aniversario) {
+                        banner.innerText = "🎊 ¡Feliz Aniversario en el movimiento! Gracias por tu compromiso. 💙";
+                        banner.classList.remove('hidden');
+                    }
+
+                    // Se asegura de que las funciones existan antes de llamarlas
+                    if (typeof cargarEventosEnMuro === 'function') cargarEventosEnMuro();
+                    if (typeof cargarPublicacionesEnMuro === 'function') cargarPublicacionesEnMuro();
+                } else {
+                    alert("Usuario no encontrado.");
+                }
+            } catch (error) {
+                // Validación silenciosa para evitar el "Falso Positivo"
+                if (document.getElementById('member-view').classList.contains('hidden')) {
+                    alert("Error de conexión al servidor.");
+                }
+            }
+        }
+
+        async function publicarEvento() {
+            const nombre = document.getElementById('admin-nombre-evento').value.trim();
+            const costo = document.getElementById('admin-costo-evento').value;
+            const fecha = document.getElementById('admin-fecha-evento').value;
+            const requisitos = document.getElementById('admin-requisitos-evento').value;
+            const imagen = document.getElementById('admin-imagen-evento').value.trim();
+
+            if (!nombre || !fecha) return alert("Nombre y fecha son obligatorios.");
+
+            const payload = {
+                nombre_evento: nombre,
+                tipo_evento: imagen ? imagen : "General",
+                costo: parseFloat(costo),
+                fecha_inicio: fecha,
+                requisitos: requisitos || "Ninguno"
+            };
+
+            const res = await fetch(`${API_URL}/admin/eventos/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Evento publicado con éxito.");
+                document.getElementById('admin-nombre-evento').value = "";
+                document.getElementById('admin-costo-evento').value = "0.00";
+                document.getElementById('admin-fecha-evento').value = "";
+                document.getElementById('admin-requisitos-evento').value = "";
+                document.getElementById('admin-imagen-evento').value = "";
+                cargarEventosAdmin();
+            } else {
+                alert("Error al publicar evento.");
+            }
+        }
+
+        async function publicarContenido() {
+            const titulo = document.getElementById('admin-pub-titulo').value.trim();
+            const descripcion = document.getElementById('admin-pub-desc').value.trim();
+            const archivoInput = document.getElementById('admin-pub-archivo');
+
+            if (!titulo || !descripcion) return alert("Título y descripción son obligatorios.");
+
+            const formData = new FormData();
+            formData.append("titulo", titulo);
+            formData.append("descripcion", descripcion);
+            if (archivoInput.files[0]) {
+                formData.append("archivo", archivoInput.files[0]);
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/admin/publicaciones/`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (res.ok) {
+                    alert("Contenido multimedia compartido con éxito.");
+                    document.getElementById('admin-pub-titulo').value = "";
+                    document.getElementById('admin-pub-desc').value = "";
+                    archivoInput.value = "";
+                    if (typeof cargarPublicacionesAdmin === 'function') cargarPublicacionesAdmin();
+                } else {
+                    alert("Error al publicar contenido.");
+                }
+            } catch (error) {
+                alert("Error de conexión al subir el archivo.");
+            }
+        }
+
+        async function cargarEventosEnMuro() {
+            const res = await fetch(`${API_URL}/eventos/`);
+            if (res.ok) {
+                const eventos = await res.json();
+                let html = '';
+                if (eventos.length === 0) {
+                    html = '<p>No hay eventos próximos.</p>';
+                } else {
+                    eventos.forEach(ev => {
+                        let imgHtml = (ev.Tipo_Evento && ev.Tipo_Evento.startsWith('http')) 
+                            ? `<img class="media-content" src="${ev.Tipo_Evento}" onerror="this.style.display='none'">` : '';
+                        
+                        html += `
+                            <div class="feed-post">
+                                <h4 style="color: var(--primary-orange); margin-top:0;">${ev.Nombre_Evento}</h4>
+                                <p><strong>📅 Fecha:</strong> ${ev.Fecha_Inicio} | <strong>💰 Costo:</strong> $${ev.Costo}</p>
+                                <p><strong>📋 Requisitos:</strong> ${ev.Requisitos}</p>
+                                ${imgHtml}
+                                <button class="btn" style="margin-top: 10px;" onclick="abrirModalInscripcion(${ev.ID_Evento}, '${ev.Nombre_Evento}')">Inscribirme y Subir Pago</button>
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById('feed-eventos-container').innerHTML = html;
+            }
+        }
+
+        async function cargarPublicacionesEnMuro() {
+            try {
+                const res = await fetch(`${API_URL}/publicaciones/`);
+                if (res.ok) {
+                    const pubs = await res.json();
+                    let html = '';
+                    if (pubs.length === 0) {
+                        html = `<div class="feed-post"><h4 style="color: var(--primary-orange);">Nuestra Historia Institucional</h4><p>Conoce cómo iniciamos nuestra misión transformadora...</p></div>`;
+                    } else {
+                        pubs.forEach(p => {
+                            let mediaHtml = '';
+                            if (p.URL_Multimedia) {
+                                // Soporte inteligente para video e imagen
+                                if (p.URL_Multimedia.includes('.mp4') || p.URL_Multimedia.includes('.webm') || p.URL_Multimedia.includes('.ogg')) {
+                                    mediaHtml = `<video class="media-content" controls src="${p.URL_Multimedia}"></video>`;
+                                } else {
+                                    mediaHtml = `<img class="media-content" src="${p.URL_Multimedia}" onerror="this.style.display='none'">`;
+                                }
+                            }
+                            html += `
+                                <div class="feed-post">
+                                    <h4 style="color: var(--primary-orange); margin-top:0;">${p.Titulo}</h4>
+                                    <p>${p.Descripcion}</p>
+                                    ${mediaHtml}
+                                </div>
+                            `;
+                        });
+                    }
+                    document.getElementById('feed-publicaciones-container').innerHTML = html;
+                }
+            } catch (error) {
+                console.error("No se pudieron cargar las publicaciones");
+            }
+        }
+
+        async function cargarEventosAdmin() {
+            const res = await fetch(`${API_URL}/eventos/`);
+            if (res.ok) {
+                const eventos = await res.json();
+                let html = '';
+                eventos.forEach(ev => {
+                    html += `
+                        <div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <div><strong>${ev.Nombre_Evento}</strong> (${ev.Fecha_Inicio})</div>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarEvento(${ev.ID_Evento})">Eliminar</button>
+                        </div>
+                    `;
+                });
+                document.getElementById('admin-lista-eventos').innerHTML = html || '<p>No hay eventos creados.</p>';
+            }
+        }
+
+        async function eliminarEvento(id) {
+            if (!confirm("¿Estás seguro de eliminar este evento?")) return;
+            const res = await fetch(`${API_URL}/admin/eventos/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                alert("Evento eliminado.");
+                cargarEventosAdmin();
+            }
+        }
+
+        async function cargarPublicacionesAdmin() {
+            const res = await fetch(`${API_URL}/publicaciones/`);
+            if (res.ok) {
+                const pubs = await res.json();
+                let html = '';
+                pubs.forEach(p => {
+                    html += `
+                        <div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <div><strong>${p.Titulo}</strong></div>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarPublicacion(${p.ID_Publicacion})">Eliminar</button>
+                        </div>
+                    `;
+                });
+                document.getElementById('admin-lista-publicaciones').innerHTML = html || '<p>No hay contenido publicado.</p>';
+            }
+        }
+
+        async function eliminarPublicacion(id) {
+            if (!confirm("¿Estás seguro de eliminar este contenido del muro?")) return;
+            const res = await fetch(`${API_URL}/admin/publicaciones/${id}`, { method: "DELETE" });
+            if (res.ok) {
+                alert("Contenido eliminado con éxito.");
+                cargarPublicacionesAdmin(); 
+            }
+        }
+
+        async function subirFotoPerfil(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!usuarioActualID) return alert("Error de sesión.");
+
+            const formData = new FormData();
+            formData.append("archivo", file);
+
+            try {
+                const res = await fetch(`${API_URL}/participantes/${usuarioActualID}/foto`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('profile-pic-box').innerHTML = `<img src="${data.url_foto}" alt="Perfil">`;
+                    document.getElementById('btn-foto').innerText = "Cambiar foto de perfil";
+                    alert("¡Foto de perfil actualizada con éxito!");
+                } else {
+                    alert("Error al subir la foto.");
+                }
+            } catch (error) {
+                alert("Error de conexión con el servidor.");
+            }
+        }
+
+        function descargarQR() {
+            if (!usuarioActualID) return;
+            const url = `${API_URL}/qrcodes/${usuarioActualID}`;
+            const enlaceVirtual = document.createElement("a");
+            enlaceVirtual.href = url;
+            enlaceVirtual.download = `Credencial_GENCANA_${usuarioActualID}.png`;
+            enlaceVirtual.target = "_blank"; 
+            document.body.appendChild(enlaceVirtual);
+            enlaceVirtual.click();
+            document.body.removeChild(enlaceVirtual);
+        }
+
+        function abrirModalInscripcion(idEvento, nombreEvento) {
+            document.getElementById('modal-evento-id').value = idEvento;
+            document.getElementById('modal-evento-nombre').innerText = "Evento: " + nombreEvento;
+            document.getElementById('modal-comprobante').value = ""; 
+            document.getElementById('modal-inscripcion').style.display = 'flex';
+        }
+
+        async function procesarInscripcion() {
+            const idEvento = document.getElementById('modal-evento-id').value;
+            const archivoInput = document.getElementById('modal-comprobante');
+
+            if (!archivoInput.files[0]) return alert("Por favor, selecciona la foto de tu comprobante.");
+            if (!usuarioActualID) return alert("Error de sesión. Vuelve a iniciar sesión.");
+
+            const formData = new FormData();
+            formData.append("id_participante", usuarioActualID);
+            formData.append("id_evento", idEvento);
+            formData.append("comprobante", archivoInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_URL}/inscripciones/`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (res.ok) {
+                    alert("¡Comprobante enviado con éxito! La directiva validará tu pago pronto.");
+                    document.getElementById('modal-inscripcion').style.display = 'none';
+                } else {
+                    alert("Error al enviar la inscripción.");
+                }
+            } catch (error) {
+                alert("Error de conexión al subir el comprobante.");
+            }
+        }
+
+        function cerrarSesion() {
+            document.getElementById('admin-view').classList.add('hidden');
+            document.getElementById('member-view').classList.add('hidden');
+            document.getElementById('auth-view').classList.remove('hidden');
+            document.getElementById('celebration-banner').classList.add('hidden');
+            document.getElementById('login-id').value = "";
+            document.getElementById('panel-admin-finanzas').style.display = 'none';
+            
+            // Limpiar la foto para que no se quede guardada visualmente para el siguiente usuario
+            document.getElementById('profile-pic-box').innerHTML = `<span style="font-size: 12px; color: #aaa;">Sin Foto</span>`;
+            document.getElementById('btn-foto').innerText = "Subir foto de perfil";
+            
+            usuarioActualID = null;
+        }
+        async function cargarEventosParaGastos() {
+            try {
+                const res = await fetch(`${API_URL}/eventos/`);
+                const eventos = await res.json();
+                const select = document.getElementById('gasto-id-evento');
+                select.innerHTML = '<option value="">Selecciona un Evento...</option>';
+                eventos.forEach(ev => {
+                    select.innerHTML += `<option value="${ev.ID_Evento}">${ev.Nombre_Evento}</option>`;
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function cargarPendientes() {
+            try {
+                const res = await fetch(`${API_URL}/admin/inscripciones/pendientes`);
+                if (!res.ok) throw new Error("Error del servidor");
+                
+                const datos = await res.json();
+                const contenedor = document.getElementById('lista-pendientes');
+                contenedor.innerHTML = "";
+                
+                if (datos.length === 0) {
+                    contenedor.innerHTML = "<p style='color: #aaa;'>No hay pagos pendientes de revisión.</p>";
+                    return;
+                }
+
+                datos.forEach(d => {
+                    contenedor.innerHTML += `
+                        <div style="border: 1px solid #444; padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; color: white;">
+                            <div>
+                                <strong>${d.Nombres}</strong> pagó $${d.Monto_Total} por <em style="color: var(--primary-orange);">${d.Nombre_Evento}</em><br>
+                                <a href="${d.Comprobante_URL}" target="_blank" style="color: #4da6ff; text-decoration: underline; display: inline-block; margin-top: 5px;">📄 Ver Comprobante Subido</a>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn" onclick="aprobarPago(${d.ID_Cuota})" style="background: #28a745; padding: 10px; color: white;">✅ Aprobar</button>
+                                <button class="btn btn-danger" onclick="rechazarPago(${d.ID_Cuota})" style="padding: 10px; color: white;">❌ Rechazar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                alert("Error al cargar la lista. El servidor backend podría estar apagado.");
+            }
+        }
+
+        async function aprobarPago(idCuota) {
+            const res = await fetch(`${API_URL}/admin/inscripciones/${idCuota}/aprobar`, { method: 'POST' });
+            if(res.ok) {
+                alert("Pago aprobado. Dinero registrado.");
+                cargarPendientes(); 
+            }
+        }
+
+        async function rechazarPago(idCuota) {
+            if (!confirm("¿Estás seguro de rechazar este pago? La inscripción se anulará y el usuario tendrá que subir un nuevo comprobante.")) return;
+            
+            const res = await fetch(`${API_URL}/admin/inscripciones/${idCuota}/rechazar`, { method: 'DELETE' });
+            if(res.ok) {
+                alert("Inscripción anulada correctamente.");
+                cargarPendientes();
+            } else {
+                alert("Error al intentar anular la inscripción.");
+            }
+        }
+        
+        async function enviarGasto() {
+            const idEvento = document.getElementById('gasto-id-evento').value;
+            const categoria = document.getElementById('gasto-categoria').value;
+            const monto = document.getElementById('gasto-monto').value;
+            
+            if(!idEvento || !categoria || !monto) return alert("Llena todos los campos.");
+
+            const formData = new FormData();
+            formData.append("id_evento", idEvento);
+            formData.append("categoria", categoria);
+            formData.append("monto", monto);
+            
+            const res = await fetch(`${API_URL}/admin/gastos/`, { method: 'POST', body: formData });
+            if(res.ok) {
+                alert("Gasto descontado de la caja del evento.");
+                document.getElementById('gasto-categoria').value = "";
+                document.getElementById('gasto-monto').value = "";
+            }
+        }
+        
+    </script>
+<!-- VENTANA EMERGENTE DE PAGO -->
+    <div id="modal-inscripcion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;">
+        <div style="background: var(--card-bg); padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid var(--primary-orange);">
+            <h3 style="margin-top: 0; color: var(--primary-orange);">Confirmar Inscripción</h3>
+            <p id="modal-evento-nombre" style="font-weight: bold;"></p>
+            <input type="hidden" id="modal-evento-id">
+
+            <div class="input-group">
+                <label>Sube tu comprobante (Transferencia o Depósito)</label>
+                <input type="file" id="modal-comprobante" accept="image/*">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" style="flex: 1;" onclick="procesarInscripcion()">Enviar Comprobante</button>
+                <button class="btn btn-danger" style="flex: 1;" onclick="document.getElementById('modal-inscripcion').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
