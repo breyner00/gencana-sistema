@@ -37,8 +37,13 @@ class AsistenciaScan(BaseModel):
     numero_identificacion: str = None
 
 def get_db():
-    return mysql.connector.connect(host="localhost", user="root", password="", database="gencanasys_db")
-
+    return mysql.connector.connect(
+        host="mysql.railway.internal",
+        port="3306",
+        user="root",
+        password="AmhdlxnvdAEntWOnPIKlDnoAfrxElGxq",
+        database="railway"
+    )
 @app.post("/participantes/", response_model=dict)
 def crear_participante(participante: ParticipanteCreate):
     db = get_db()
