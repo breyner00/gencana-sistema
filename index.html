@@ -276,7 +276,7 @@
     </div>
 
     <script>
-        const API_URL = "http://127.0.0.1:8000";
+        const API_URL = "https://gencana-sistema-production.up.railway.app";
         let usuarioActualID = null;
 
         function toggleView(showId, hideId) {
@@ -482,7 +482,7 @@
                     const pubs = await res.json();
                     let html = '';
                     if (pubs.length === 0) {
-                        html = `<div class="feed-post"><h4 style="color: var(--primary-orange);">Nuestra Historia Institucional</h4><p>Conoce cómo iniciamos nuestra misión transformadora...</p></div>`;
+                        html = '<p style="color: #aaa; font-style: italic;">No hay publicaciones recientes.</p>';
                     } else {
                         pubs.forEach(p => {
                             let mediaHtml = '';
