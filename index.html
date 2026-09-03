@@ -380,37 +380,45 @@
 
         async function publicarEvento() {
             const nombre = document.getElementById('admin-nombre-evento').value.trim();
+            const tarifas = document.getElementById('admin-tarifas-evento').value.trim();
             const costo = document.getElementById('admin-costo-evento').value;
-            const fecha = document.getElementById('admin-fecha-evento').value;
+            // Captura correcta del campo de fecha de inicio
+            const fechaInicioInput = document.querySelector('input[type="date"]').value; 
             const requisitos = document.getElementById('admin-requisitos-evento').value;
             const imagen = document.getElementById('admin-imagen-evento').value.trim();
 
-            if (!nombre || !fecha) return alert("Nombre y fecha son obligatorios.");
+            if (!nombre || !fechaInicioInput) return alert("El nombre y la fecha de inicio son obligatorios.");
 
             const payload = {
                 nombre_evento: nombre,
-                tipo_evento: imagen ? imagen : "General",
-                costo: parseFloat(costo),
-                fecha_inicio: fecha,
+                tipo_evento: imagen || "General",
+                costo: parseFloat(costo) || 0.0,
+                tarifas: tarifas,
+                fecha_inicio: fechaInicioInput, // El input date ya envía el formato YYYY-MM-DD correcto
                 requisitos: requisitos || "Ninguno"
             };
 
-            const res = await fetch(`${API_URL}/admin/eventos/`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
+            try {
+                const res = await fetch(`${API_URL}/admin/eventos/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
 
-            if (res.ok) {
-                alert("Evento publicado con éxito.");
-                document.getElementById('admin-nombre-evento').value = "";
-                document.getElementById('admin-costo-evento').value = "0.00";
-                document.getElementById('admin-fecha-evento').value = "";
-                document.getElementById('admin-requisitos-evento').value = "";
-                document.getElementById('admin-imagen-evento').value = "";
-                cargarEventosAdmin();
-            } else {
-                alert("Error al publicar evento.");
+                if (res.ok) {
+                    alert("¡Evento publicado con éxito!");
+                    document.getElementById('admin-nombre-evento').value = "";
+                    document.getElementById('admin-tarifas-evento').value = "";
+                    document.getElementById('admin-costo-evento').value = "0.00";
+                    document.getElementById('admin-requisitos-evento').value = "";
+                    document.getElementById('admin-imagen-evento').value = "";
+                    cargarEventosAdmin();
+                } else {
+                    const errData = await res.json();
+                    alert("Error al publicar evento: " + (errData.detail || "Revise los datos"));
+                }
+            } catch (error) {
+                alert("Error de conexión con el servidor.");
             }
         }
 
