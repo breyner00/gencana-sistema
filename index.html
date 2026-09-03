@@ -391,13 +391,19 @@
                 return alert("El nombre y la fecha de inicio son obligatorios.");
             }
 
+            // Aseguramos formato de fecha completo que exige FastAPI (YYYY-MM-DDTHH:mm:ss)
+            const formatoFecha = (fecha) => {
+                if (!fecha) return null;
+                return fecha.includes('T') ? fecha : `${fecha}T00:00:00`;
+            };
+
             const payload = {
                 nombre_evento: nombre,
                 tipo_evento: imagen || "General",
                 costo: parseFloat(costo) || 0.0,
-                tarifas: tarifas,
-                fecha_inicio: fechaInicio,
-                fecha_fin: fechaFin || null,
+                tarifas: tarifas || "General",
+                fecha_inicio: formatoFecha(fechaInicio),
+                fecha_fin: formatoFecha(fechaFin),
                 requisitos: requisitos || "Ninguno"
             };
 
@@ -420,8 +426,18 @@
                     cargarEventosAdmin();
                 } else {
                     const errData = await res.json();
-                    const errorMsg = typeof errData.detail === 'object' ? JSON.stringify(errData.detail) : (errData.detail || "Revise los datos");
-                    alert("Error al publicar evento: " + errorMsg);
+                    // Extraemos limpiamente el mensaje de error de FastAPI sin mostrar objetos
+                    let mensajeError = "Revise los datos";
+                    if (errData.detail) {
+                        if (Array.isArray(errData.detail)) {
+                            mensajeError = errData.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(' | ');
+                        } else if (typeof errData.detail === 'object') {
+                            mensajeError = JSON.stringify(errData.detail);
+                        } else {
+                            mensajeError = errData.detail;
+                        }
+                    }
+                    alert("Error al publicar evento: " + mensajeError);
                 }
             } catch (error) {
                 alert("Error de conexión con el servidor.");
