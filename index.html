@@ -420,7 +420,8 @@
                     cargarEventosAdmin();
                 } else {
                     const errData = await res.json();
-                    alert("Error al publicar evento: " + (errData.detail || "Revise los datos"));
+                    const errorMsg = typeof errData.detail === 'object' ? JSON.stringify(errData.detail) : (errData.detail || "Revise los datos");
+                    alert("Error al publicar evento: " + errorMsg);
                 }
             } catch (error) {
                 alert("Error de conexión con el servidor.");
