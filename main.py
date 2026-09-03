@@ -333,7 +333,7 @@ def actualizar_foto(participante_id: int, archivo: UploadFile = File(...)):
         with open(ruta_guardado, "wb") as buffer:
             shutil.copyfileobj(archivo.file, buffer)
             
-        url_foto = f"http://127.0.0.1:8000/uploads/perfiles/{nombre_archivo}"
+        url_foto = f"https://gencana-sistema-production.up.railway.app/uploads/perfiles/{nombre_archivo}"
         
         cursor.execute("UPDATE Participantes SET Foto_URL = %s WHERE ID_Participante = %s", (url_foto, participante_id))
         db.commit()
@@ -374,7 +374,7 @@ def crear_publicacion(
         with open(ruta_guardado, "wb") as buffer:
             shutil.copyfileobj(archivo.file, buffer)
             
-        url_multimedia = f"http://127.0.0.1:8000/uploads/{nombre_unico}"
+        url_multimedia = f"https://gencana-sistema-production.up.railway.app/uploads/{nombre_unico}"
         tipo = "multimedia"
 
     query = """INSERT INTO Publicaciones (Titulo, Descripcion, Tipo, URL_Multimedia, Fecha) 
@@ -458,7 +458,7 @@ def inscribirse_evento(
     with open(ruta_guardado, "wb") as buffer:
         shutil.copyfileobj(comprobante.file, buffer)
         
-    url_comprobante = f"http://127.0.0.1:8000/uploads/comprobantes/{nombre_archivo}"
+    url_comprobante = f"https://gencana-sistema-production.up.railway.app/uploads/comprobantes/{nombre_archivo}"
     
     cursor.execute("SELECT Costo FROM Eventos WHERE ID_Evento = %s", (id_evento,))
     evento = cursor.fetchone()
