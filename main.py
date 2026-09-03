@@ -11,6 +11,8 @@ import qrcode
 import mysql.connector
 import os
 
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("qrcodes", exist_ok=True)
 
 app = FastAPI(title="GENCANA Web System API")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
