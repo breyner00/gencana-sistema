@@ -658,7 +658,18 @@
                     alert("¡Comprobante enviado con éxito! La directiva validará tu pago pronto.");
                     document.getElementById('modal-inscripcion').style.display = 'none';
                 } else {
-                    alert("Error al enviar la inscripción.");
+                    const errData = await res.json();
+                    let mensajeError = "Revise los datos";
+                    if (errData.detail) {
+                        if (Array.isArray(errData.detail)) {
+                            mensajeError = errData.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(' | ');
+                        } else if (typeof errData.detail === 'object') {
+                            mensajeError = JSON.stringify(errData.detail);
+                        } else {
+                            mensajeError = errData.detail;
+                        }
+                    }
+                    alert("Error detallado al inscribir: " + mensajeError);
                 }
             } catch (error) {
                 alert("Error de conexión al subir el comprobante.");
