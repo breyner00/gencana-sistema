@@ -95,7 +95,6 @@
                     const li = document.createElement('li');
                     li.id = `participante-${p.ID_Participante}`;
                     
-                    // Validar estado para aplicar clase y icono correcto
                     const asisitido = p.Asistencia === 1 || p.Asistencia === true || p.estado === 'Confirmado';
                     li.className = asisitido ? 'confirmado' : 'pendiente';
                     
