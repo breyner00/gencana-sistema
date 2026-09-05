@@ -67,6 +67,48 @@
         }
         window.onload = cargarEventosEscaner;
 
+        // Función para cargar los inscritos del evento seleccionado
+        async function cargarInscritos() {
+            const idEvento = document.getElementById('select-evento-escaner').value;
+            const container = document.getElementById('lista-inscritos-container');
+            const lista = document.getElementById('lista-inscritos');
+
+            if (!idEvento) {
+                container.style.display = 'none';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/eventos/${idEvento}/inscritos/`);
+                if (!res.ok) throw new Error("Error al obtener inscritos");
+
+                const inscritos = await res.json();
+                container.style.display = 'block';
+                lista.innerHTML = "";
+
+                if (inscritos.length === 0) {
+                    lista.innerHTML = "<li style='background:#f4f4f4; text-align:center;'>No hay inscritos en este evento.</li>";
+                    return;
+                }
+
+                inscritos.forEach(p => {
+                    const li = document.createElement('li');
+                    li.id = `participante-${p.ID_Participante}`;
+                    
+                    // Validar estado para aplicar clase y icono correcto
+                    const asisitido = p.Asistencia === 1 || p.Asistencia === true || p.estado === 'Confirmado';
+                    li.className = asisitido ? 'confirmado' : 'pendiente';
+                    
+                    const icono = asisitido ? '✅' : '⏳';
+                    li.innerHTML = `<span>${p.Nombres || p.nombre} (${p.Cedula || p.cedula})</span> <span>${icono}</span>`;
+                    lista.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Error al cargar inscritos:", error);
+                lista.innerHTML = "<li style='color:red;'>Error al cargar la lista de participantes.</li>";
+            }
+        }
+
         async function enviarAsistencia(payload) {
             try {
                 const response = await fetch(`${API_URL}/asistencia/`, {
