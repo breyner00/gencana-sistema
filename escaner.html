@@ -46,7 +46,7 @@
 
         async function cargarEventosEscaner() {
             try {
-                const res = await fetch(`${API_URL}/eventos/`);
+                const res = await fetch(`${API_URL}/eventos`);
                 if (!res.ok) throw new Error("Error al obtener eventos");
                 
                 const eventos = await res.json();
@@ -79,7 +79,7 @@
             }
 
             try {
-                const res = await fetch(`${API_URL}/eventos/${idEvento}/inscritos/`);
+                const res = await fetch(`${API_URL}/eventos/${idEvento}/inscritos`);
                 if (!res.ok) throw new Error("Error al obtener inscritos");
 
                 const inscritos = await res.json();
@@ -110,7 +110,7 @@
 
         async function enviarAsistencia(payload) {
             try {
-                const response = await fetch(`${API_URL}/asistencia/`, {
+                const response = await fetch(`${API_URL}/asistencia`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
