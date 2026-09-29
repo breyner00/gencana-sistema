@@ -125,12 +125,17 @@
                 if (response.ok) {
                     resultadoUI.innerHTML = `<span style="color: green;">✅ ${data.mensaje}</span>`;
                     
-                    // Pintar de verde automáticamente en la lista de abajo
-                    const fila = document.getElementById(`participante-${data.id_participante}`);
+                    // Buscamos la fila tomando en cuenta las mayúsculas de tu base de datos
+                    const idConfirmado = data.ID_Participante || data.id_participante;
+                    const fila = document.getElementById(`participante-${idConfirmado}`);
+                    
                     if (fila) {
                         fila.className = 'confirmado';
                         fila.innerHTML = fila.innerHTML.replace('⏳', '✅');
                     }
+                    
+                    // Respaldo infalible: actualizamos la lista en vivo desde la base de datos
+                    cargarInscritos();
                 } else {
                     // Mostrar los mensajes de error exactos del backend (ya confirmó, no inscrito, etc.)
                     resultadoUI.innerHTML = `<span style="color: red;">${data.detail}</span>`;
