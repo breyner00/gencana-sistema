@@ -46,7 +46,7 @@
 
         async function cargarEventosEscaner() {
             try {
-                const res = await fetch(`${API_URL}/eventos`);
+                const res = await fetch(`${API_URL}/eventos/`);
                 if (!res.ok) throw new Error("Error al obtener eventos");
                 
                 const eventos = await res.json();
