@@ -95,11 +95,13 @@
                     const li = document.createElement('li');
                     li.id = `participante-${p.ID_Participante}`;
                     
-                    const asisitido = p.Asistencia === 1 || p.Asistencia === true || p.estado === 'Confirmado';
+                    // Añadimos minúsculas por si FastAPI está serializando el JSON en minúscula
+                    const asisitido = p.Asistencia === 1 || p.asistencia === 1 || p.Asistencia === true || p.asistencia === true || p.estado === 'Confirmado';
                     li.className = asisitido ? 'confirmado' : 'pendiente';
                     
                     const icono = asisitido ? '✅' : '⏳';
-                    li.innerHTML = `<span>${p.Nombres || p.nombre} (${p.Cedula || p.cedula})</span> <span>${icono}</span>`;
+                    // Cambiamos Cedula por Numero_Identificacion, que es el nombre real de tu columna en la base de datos
+                    li.innerHTML = `<span>${p.Nombres || p.nombre} (${p.Numero_Identificacion || p.numero_identificacion || p.Cedula})</span> <span>${icono}</span>`;
                     lista.appendChild(li);
                 });
             } catch (error) {
