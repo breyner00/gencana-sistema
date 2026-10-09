@@ -145,33 +145,83 @@
             <button class="btn btn-blue" onclick="toggleView('register-form', 'login-form')">Crear cuenta nueva</button>
         </div>
 
-        <div id="register-form" class="hidden">
-            <h3>Registro de Miembro GENCANA</h3>
-            <div class="input-group">
-                <label>Nombres Completos</label>
-                <input type="text" id="reg-nombres">
-            </div>
-            <div class="input-group">
-                <label>Fecha de Nacimiento</label>
-                <input type="date" id="reg-nacimiento" required>
-            </div>
-            <div class="input-group">
-                <label>¿Desde cuándo perteneces al movimiento?</label>
-                <div class="flex-date">
-                    <input type="number" id="reg-year" placeholder="Año (Ej: 2021)" required>
-                    <select id="reg-month">
-                        <option value="">Mes (Opcional)</option>
-                        <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
-                        <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
-                        <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
-                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn" onclick="registrarUsuario()">Registrarme</button>
-            <button class="btn btn-danger" style="margin-top: 10px;" onclick="toggleView('login-form', 'register-form')">Volver</button>
+        <div id="register-form" class="hidden" style="max-height: 80vh; overflow-y: auto; padding-right: 10px;">
+    <h3>Registro de Miembro GENCANA</h3>
+    
+    <!-- Datos Personales -->
+    <div class="input-group"><label>Nombres Completos</label><input type="text" id="reg-nombres"></div>
+    <div class="input-group"><label>Correo Electrónico</label><input type="email" id="reg-correo"></div>
+    
+    <div style="display: flex; gap: 10px;">
+        <div class="input-group" style="flex: 1;"><label>Fecha de Nacimiento</label><input type="date" id="reg-nacimiento"></div>
+        <div class="input-group" style="flex: 1;">
+            <label>Género</label>
+            <select id="reg-genero">
+                <option value="Masculino">Masculino</option><option value="Femenino">Femenino</option><option value="Otro">Otro</option>
+            </select>
         </div>
     </div>
+
+    <!-- Contacto Internacional -->
+    <div style="display: flex; gap: 10px;">
+        <div class="input-group" style="flex: 1;"><label>Tu Celular (Ej: +593... o +51...)</label><input type="text" id="reg-celular" placeholder="+593 999 999 999"></div>
+        <div class="input-group" style="flex: 1;"><label>Celular Emergencia</label><input type="text" id="reg-emergencia" placeholder="+593 999 999 999"></div>
+    </div>
+    <div class="input-group"><label>Parentesco de Emergencia (Ej: Mamá, Hermano)</label><input type="text" id="reg-parentesco"></div>
+
+    <!-- Ubicación y Roles GENCANA -->
+    <div class="input-group">
+        <label>Provincia / País</label>
+        <select id="reg-provincia" onchange="actualizarSedes()">
+            <option value="">Selecciona tu provincia...</option>
+            <option value="Ecuador">Ecuador</option>
+            <option value="Perú">Perú</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <label>Sede a la que perteneces</label>
+        <select id="reg-sede"><option value="">Primero selecciona una provincia</option></select>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+        <div class="input-group" style="flex: 1;">
+            <label>Rol Actual</label>
+            <select id="reg-rol">
+                <option value="Integrante">Integrante</option>
+                <option value="Coordinador">Coordinador</option>
+                <option value="Animador">Animador</option>
+                <option value="Asesor">Asesor</option>
+                <option value="Asesor General">Asesor General</option>
+            </select>
+        </div>
+        <div class="input-group" style="flex: 1;">
+            <label>Apostolado</label>
+            <select id="reg-apostolado">
+                <option value="Música">Música</option>
+                <option value="Evangelización">Evangelización</option>
+                <option value="Economía">Economía</option>
+                <option value="Misión">Misión</option>
+                <option value="Comunicación">Comunicación</option>
+                <option value="Espiritualidad">Espiritualidad</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>¿Desde cuándo perteneces al movimiento?</label>
+        <div class="flex-date">
+            <input type="number" id="reg-year" placeholder="Año (Ej: 2021)">
+            <select id="reg-month">
+                <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
+                <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
+                <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
+                <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+            </select>
+        </div>
+    </div>
+    <button class="btn" onclick="registrarNuevoUsuario()">Registrarme</button>
+    <button class="btn btn-danger" style="margin-top: 10px;" onclick="toggleView('login-form', 'register-form')">Volver</button>
+</div>
 
     <!-- VISTA DEL PARTICIPANTE (MURO) -->
     <div id="member-view" class="container hidden">
@@ -275,6 +325,66 @@
         </div>
     </div>
 
+    <script>
+    // Lógica dinámica para cargar sedes dependiendo del país
+    function actualizarSedes() {
+        const provincia = document.getElementById('reg-provincia').value;
+        const selectSede = document.getElementById('reg-sede');
+        
+        const sedesEcuador = ["Cristo Resucitado", "La Gasca", "Carcelén", "Rumiñahui", "La Dolorosa", "Chillogallo", "El Barco", "Cutuglahua", "San Pedro de Tahuada", "Sangolqui", "La Arcadia"];
+        const sedesPeru = ["Chiclayo", "Patapo", "La Cría", "Pucalá"];
+        
+        selectSede.innerHTML = '<option value="">Selecciona tu sede...</option>';
+        
+        let opciones = [];
+        if (provincia === "Ecuador") opciones = sedesEcuador;
+        else if (provincia === "Perú") opciones = sedesPeru;
+        
+        opciones.forEach(sede => {
+            selectSede.innerHTML += `<option value="${sede}">${sede}</option>`;
+        });
+    }
+
+    // Nueva función para enviar todos los datos al backend
+    async function registrarNuevoUsuario() {
+        const payload = {
+            nombres: document.getElementById('reg-nombres').value.trim(),
+            correo: document.getElementById('reg-correo').value.trim(),
+            fecha_nacimiento: document.getElementById('reg-nacimiento').value,
+            genero: document.getElementById('reg-genero').value,
+            celular: document.getElementById('reg-celular').value.trim(),
+            numero_emergencia: document.getElementById('reg-emergencia').value.trim(),
+            parentesco_emergencia: document.getElementById('reg-parentesco').value.trim(),
+            provincia: document.getElementById('reg-provincia').value,
+            sede: document.getElementById('reg-sede').value,
+            rol: document.getElementById('reg-rol').value,
+            apostolado: document.getElementById('reg-apostolado').value,
+            numero_identificacion: "PENDIENTE",
+            telefono: document.getElementById('reg-celular').value.trim(),
+            fecha_ingreso: `${document.getElementById('reg-year').value.trim() || '2024'}-${document.getElementById('reg-month').value}-01`
+        };
+
+        if (!payload.nombres || !payload.fecha_nacimiento || !payload.celular || !payload.provincia || !payload.sede) {
+            return alert("Por favor, completa todos los campos principales (Nombres, Fecha, Celular, Provincia y Sede).");
+        }
+
+        const response = await fetch(`${API_URL}/participantes/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            alert(`¡Registro exitoso! Tu Número GENCANA es: ${data.numero_asignado}. Úsalo para iniciar sesión.`);
+            toggleView('login-form', 'register-form');
+            document.getElementById('login-id').value = data.numero_asignado;
+        } else {
+            alert("Error al registrar. Revisa los datos.");
+        }
+    }
+    </script>
+    
     <script>
         const API_URL = "https://gencana-sistema-production.up.railway.app";
         let usuarioActualID = null;

@@ -31,8 +31,58 @@ class ParticipanteCreate(BaseModel):
     numero_identificacion: str
     fecha_nacimiento: date
     genero: str
-    telefono: str
+    correo: str
+    celular: str
+    numero_emergencia: str
+    parentesco_emergencia: str
+    provincia: str
+    sede: str
+    rol: str
+    apostolado: str
     fecha_ingreso: date
+
+@app.post("/participantes/", response_model=dict)
+def crear_participante(participante: ParticipanteCreate):
+    db = get_db()
+    cursor = db.cursor()
+    # Actualizamos el INSERT con los nuevos campos
+    query = """INSERT INTO Participantes 
+               (Nombres, Numero_Identificacion, Fecha_Nacimiento, Genero, Telefono, Fecha_Ingreso,
+                Correo, Celular, Numero_Emergencia, Parentesco_Emergencia, Provincia, Sede, Rol, Apostolado) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    
+    valores = (
+        participante.nombres, "TEMP", participante.fecha_nacimiento, participante.genero, 
+        participante.celular, participante.fecha_ingreso, participante.correo, 
+        participante.celular, participante.numero_emergencia, participante.parentesco_emergencia,
+        participante.provincia, participante.sede, participante.rol, participante.apostolado
+    )
+    
+    try:
+        cursor.execute(query, valores)
+        participante_id = cursor.lastrowid
+        
+        # Generar identificador GENCANA
+        numero_secuencial = 299 + participante_id
+        numero_gencana = f"gnc{numero_secuencial}"
+        
+        qr_data = f"GENCANA-ID-{participante_id}"
+        img = qrcode.make(qr_data)
+        os.makedirs("qrcodes", exist_ok=True)
+        img.save(f"qrcodes/participante_{participante_id}.png")
+        
+        # Actualizar con el número oficial
+        cursor.execute("UPDATE Participantes SET Numero_Identificacion = %s, Codigo_QR = %s WHERE ID_Participante = %s", 
+                       (numero_gencana, qr_data, participante_id))
+        db.commit()
+        
+        return {"mensaje": "Participante registrado", "id": participante_id, "numero_asignado": numero_gencana}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        db.close()
 
 class AsistenciaScan(BaseModel):
     evento_id: int
