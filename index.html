@@ -157,22 +157,16 @@
         <div class="input-group" style="flex: 1;">
             <label>Género</label>
             <select id="reg-genero">
-                <option value="Masculino">Masculino</option><option value="Femenino">Femenino</option><option value="Otro">Otro</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
             </select>
         </div>
     </div>
 
-    <!-- Contacto Internacional -->
-    <div style="display: flex; gap: 10px;">
-        <div class="input-group" style="flex: 1;"><label>Tu Celular (Ej: +593... o +51...)</label><input type="text" id="reg-celular" placeholder="+593 999 999 999"></div>
-        <div class="input-group" style="flex: 1;"><label>Celular Emergencia</label><input type="text" id="reg-emergencia" placeholder="+593 999 999 999"></div>
-    </div>
-    <div class="input-group"><label>Parentesco de Emergencia (Ej: Mamá, Hermano)</label><input type="text" id="reg-parentesco"></div>
-
-    <!-- Ubicación y Roles GENCANA -->
+    <!-- Ubicación (Debe ir antes de los teléfonos para detectar el código) -->
     <div class="input-group">
         <label>Provincia / País</label>
-        <select id="reg-provincia" onchange="actualizarSedes()">
+        <select id="reg-provincia" onchange="actualizarSedesYTelefonos()">
             <option value="">Selecciona tu provincia...</option>
             <option value="Ecuador">Ecuador</option>
             <option value="Perú">Perú</option>
@@ -183,6 +177,26 @@
         <select id="reg-sede"><option value="">Primero selecciona una provincia</option></select>
     </div>
 
+    <!-- Contacto Internacional Automatizado -->
+    <div style="display: flex; gap: 10px;">
+        <div class="input-group" style="flex: 1;">
+            <label>Tu Celular</label>
+            <div style="display: flex; background: #2a2a2a; border: 1px solid #444; border-radius: 6px; overflow: hidden;">
+                <span id="prefix-celular" style="padding: 10px; background: #333; color: var(--primary-orange); font-weight: bold;">+??</span>
+                <input type="text" id="reg-celular" placeholder="Ej: 999 999 999" style="border: none; border-radius: 0; margin: 0; width: 100%; box-sizing: border-box;">
+            </div>
+        </div>
+        <div class="input-group" style="flex: 1;">
+            <label>Celular Emergencia</label>
+            <div style="display: flex; background: #2a2a2a; border: 1px solid #444; border-radius: 6px; overflow: hidden;">
+                <span id="prefix-emergencia" style="padding: 10px; background: #333; color: var(--primary-orange); font-weight: bold;">+??</span>
+                <input type="text" id="reg-emergencia" placeholder="Ej: 999 999 999" style="border: none; border-radius: 0; margin: 0; width: 100%; box-sizing: border-box;">
+            </div>
+        </div>
+    </div>
+    <div class="input-group"><label>Parentesco de Emergencia (Ej: Mamá, Hermano)</label><input type="text" id="reg-parentesco"></div>
+
+    <!-- Roles GENCANA -->
     <div style="display: flex; gap: 10px;">
         <div class="input-group" style="flex: 1;">
             <label>Rol Actual</label>
@@ -326,10 +340,12 @@
     </div>
 
     <script>
-    // Lógica dinámica para cargar sedes dependiendo del país
-    function actualizarSedes() {
+    // Lógica dinámica para cargar sedes y códigos telefónicos
+    function actualizarSedesYTelefonos() {
         const provincia = document.getElementById('reg-provincia').value;
         const selectSede = document.getElementById('reg-sede');
+        const prefixCelular = document.getElementById('prefix-celular');
+        const prefixEmergencia = document.getElementById('prefix-emergencia');
         
         const sedesEcuador = ["Cristo Resucitado", "La Gasca", "Carcelén", "Rumiñahui", "La Dolorosa", "Chillogallo", "El Barco", "Cutuglahua", "San Pedro de Tahuada", "Sangolqui", "La Arcadia"];
         const sedesPeru = ["Chiclayo", "Patapo", "La Cría", "Pucalá"];
@@ -337,34 +353,56 @@
         selectSede.innerHTML = '<option value="">Selecciona tu sede...</option>';
         
         let opciones = [];
-        if (provincia === "Ecuador") opciones = sedesEcuador;
-        else if (provincia === "Perú") opciones = sedesPeru;
+        let prefijoPais = "+??"; // Por defecto si no elige nada
+
+        if (provincia === "Ecuador") {
+            opciones = sedesEcuador;
+            prefijoPais = "+593";
+        } else if (provincia === "Perú") {
+            opciones = sedesPeru;
+            prefijoPais = "+51";
+        }
         
+        // Renderizar las sedes
         opciones.forEach(sede => {
             selectSede.innerHTML += `<option value="${sede}">${sede}</option>`;
         });
+
+        // Actualizar visualmente los recuadros de código de país
+        prefixCelular.innerText = prefijoPais;
+        prefixEmergencia.innerText = prefijoPais;
     }
 
-    // Nueva función para enviar todos los datos al backend
+    // Función para enviar todos los datos al backend
     async function registrarNuevoUsuario() {
+        // Extraemos el código de país que el sistema detectó
+        const prefijo = document.getElementById('prefix-celular').innerText;
+        
+        // Unimos el código de país (si existe) con el número que ingresó el usuario
+        const celularBase = document.getElementById('reg-celular').value.trim();
+        const emergenciaBase = document.getElementById('reg-emergencia').value.trim();
+        
+        const celularCompleto = (prefijo !== "+??" ? prefijo + " " : "") + celularBase;
+        const emergenciaCompleto = (prefijo !== "+??" ? prefijo + " " : "") + emergenciaBase;
+
         const payload = {
             nombres: document.getElementById('reg-nombres').value.trim(),
             correo: document.getElementById('reg-correo').value.trim(),
             fecha_nacimiento: document.getElementById('reg-nacimiento').value,
             genero: document.getElementById('reg-genero').value,
-            celular: document.getElementById('reg-celular').value.trim(),
-            numero_emergencia: document.getElementById('reg-emergencia').value.trim(),
+            celular: celularCompleto,
+            numero_emergencia: emergenciaCompleto,
             parentesco_emergencia: document.getElementById('reg-parentesco').value.trim(),
             provincia: document.getElementById('reg-provincia').value,
             sede: document.getElementById('reg-sede').value,
             rol: document.getElementById('reg-rol').value,
             apostolado: document.getElementById('reg-apostolado').value,
             numero_identificacion: "PENDIENTE",
-            telefono: document.getElementById('reg-celular').value.trim(),
+            telefono: celularCompleto, // Lo guardamos también aquí por retrocompatibilidad
             fecha_ingreso: `${document.getElementById('reg-year').value.trim() || '2024'}-${document.getElementById('reg-month').value}-01`
         };
 
-        if (!payload.nombres || !payload.fecha_nacimiento || !payload.celular || !payload.provincia || !payload.sede) {
+        if (!payload.nombres || !payload.fecha_nacimiento || !celularBase || !payload.provincia || !payload.sede) {
             return alert("Por favor, completa todos los campos principales (Nombres, Fecha, Celular, Provincia y Sede).");
         }
 
@@ -380,7 +418,9 @@
             toggleView('login-form', 'register-form');
             document.getElementById('login-id').value = data.numero_asignado;
         } else {
-            alert("Error al registrar. Revisa los datos.");
+            // NUEVO: Captura el mensaje exacto del servidor (como el del correo duplicado)
+            const errorData = await response.json();
+            alert(errorData.detail || "Error al registrar. Revisa los datos.");
         }
     }
     </script>

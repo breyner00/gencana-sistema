@@ -101,17 +101,33 @@ def get_db():
 def crear_participante(participante: ParticipanteCreate):
     db = get_db()
     cursor = db.cursor()
-    # Insertamos temporalmente con un valor genérico
-    query = """INSERT INTO Participantes (Nombres, Numero_Identificacion, Fecha_Nacimiento, Genero, Telefono, Fecha_Ingreso) 
-               VALUES (%s, %s, %s, %s, %s, %s)"""
-    valores = (participante.nombres, "TEMP", participante.fecha_nacimiento, participante.genero, participante.telefono, participante.fecha_ingreso)
+    
+    # NUEVO: Primero, validamos si el correo ya existe antes de intentar guardar (Cumplimiento de RF-09)
+    cursor.execute("SELECT ID_Participante FROM Participantes WHERE Correo = %s", (participante.correo,))
+    if cursor.fetchone():
+        cursor.close()
+        db.close()
+        raise HTTPException(status_code=400, detail="Este correo electrónico ya se encuentra registrado en GENCANA. ¡Solo puedes registrarte una vez!")
+
+    # Si pasa la validación, procedemos a guardar (con los nuevos campos agregados anteriormente)
+    query = """INSERT INTO Participantes 
+               (Nombres, Numero_Identificacion, Fecha_Nacimiento, Genero, Telefono, Fecha_Ingreso,
+                Correo, Celular, Numero_Emergencia, Parentesco_Emergencia, Provincia, Sede, Rol, Apostolado) 
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+    
+    valores = (
+        participante.nombres, "TEMP", participante.fecha_nacimiento, participante.genero, 
+        participante.celular, participante.fecha_ingreso, participante.correo, 
+        participante.celular, participante.numero_emergencia, participante.parentesco_emergencia,
+        participante.provincia, participante.sede, participante.rol, participante.apostolado
+    )
     
     try:
         cursor.execute(query, valores)
         participante_id = cursor.lastrowid
         
-        # Generar identificador secuencial GENCANA empezando en gnc300
-        numero_secuencial = 299 + participante_id
+        # Generar identificador GENCANA
+        numero_secuencial = 99 + participante_id
         numero_gencana = f"gnc{numero_secuencial}"
         
         qr_data = f"GENCANA-ID-{participante_id}"
@@ -119,7 +135,7 @@ def crear_participante(participante: ParticipanteCreate):
         os.makedirs("qrcodes", exist_ok=True)
         img.save(f"qrcodes/participante_{participante_id}.png")
         
-        # Actualizar con el número oficial generado y el QR
+        # Actualizar con el número oficial
         cursor.execute("UPDATE Participantes SET Numero_Identificacion = %s, Codigo_QR = %s WHERE ID_Participante = %s", 
                        (numero_gencana, qr_data, participante_id))
         db.commit()
