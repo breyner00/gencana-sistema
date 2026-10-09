@@ -378,10 +378,18 @@
         // Extraemos el código de país que el sistema detectó
         const prefijo = document.getElementById('prefix-celular').innerText;
         
-        // Unimos el código de país (si existe) con el número que ingresó el usuario
-        const celularBase = document.getElementById('reg-celular').value.trim();
-        const emergenciaBase = document.getElementById('reg-emergencia').value.trim();
+        let celularBase = document.getElementById('reg-celular').value.trim();
+        let emergenciaBase = document.getElementById('reg-emergencia').value.trim();
         
+        // NUEVO: Eliminar el '0' inicial si el usuario lo escribió
+        if (celularBase.startsWith('0')) {
+            celularBase = celularBase.substring(1);
+        }
+        if (emergenciaBase.startsWith('0')) {
+            emergenciaBase = emergenciaBase.substring(1);
+        }
+        
+        // Unimos el código de país con el número limpio
         const celularCompleto = (prefijo !== "+??" ? prefijo + " " : "") + celularBase;
         const emergenciaCompleto = (prefijo !== "+??" ? prefijo + " " : "") + emergenciaBase;
 
@@ -418,7 +426,7 @@
             toggleView('login-form', 'register-form');
             document.getElementById('login-id').value = data.numero_asignado;
         } else {
-            // NUEVO: Captura el mensaje exacto del servidor (como el del correo duplicado)
+            // Captura el mensaje exacto del servidor (como el del correo duplicado)
             const errorData = await response.json();
             alert(errorData.detail || "Error al registrar. Revisa los datos.");
         }
