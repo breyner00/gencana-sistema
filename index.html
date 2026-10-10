@@ -268,6 +268,11 @@
         </div>
         <h3 style="color: #ffd700;">👥 Gestión de Usuarios</h3>
         <p style="font-size: 14px; color: #aaa;">Aquí puedes ver y editar a todos los miembros registrados, cambiar sus roles o apostolados, y corregir sus datos.</p>
+        <!-- NUEVO BUSCADOR DINÁMICO -->
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="text" id="buscador-admin" placeholder="🔍 Buscar usuario por nombre, cédula, rol o sede..." onkeyup="filtrarAdminGeneral()" style="background: #2a2a2a; border: 1px solid #ffd700; color: white; padding: 12px; border-radius: 8px; width: 100%;">
+        </div>
+        <!-- FIN DEL BUSCADOR -->
         <div style="max-height: 300px; overflow-y: auto; background: #1e1e1e; border: 1px solid #333; padding: 10px; border-radius: 8px;">
             <table style="width: 100%; text-align: left; border-collapse: collapse; color: white;">
                 <thead>
@@ -802,6 +807,38 @@
             enlaceVirtual.href = `${API_URL}/qrcodes/${usuarioActualID}`;
             enlaceVirtual.download = `Credencial_GENCANA_${usuarioActualID}.png`;
             document.body.appendChild(enlaceVirtual); enlaceVirtual.click(); document.body.removeChild(enlaceVirtual);
+        }
+
+        // ==========================================
+        // BUSCADOR EN TIEMPO REAL (RF-06)
+        // ==========================================
+        function filtrarAdminGeneral() {
+            // Obtenemos lo que escribes y lo pasamos a minúsculas
+            const filtro = document.getElementById('buscador-admin').value.toLowerCase();
+            
+            // 1. Filtrar la tabla de usuarios
+            const filasUsuarios = document.querySelectorAll('#tabla-usuarios-general tr');
+            filasUsuarios.forEach(fila => {
+                // Leemos todo el texto de la fila (Nombre, cédula, rol, sede)
+                const textoFila = fila.innerText.toLowerCase();
+                // Si el texto incluye lo que escribiste, lo mostramos; si no, lo ocultamos
+                if (textoFila.includes(filtro)) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+
+            // 2. Filtrar la bitácora de auditoría
+            const itemsAuditoria = document.querySelectorAll('#caja-auditoria > div');
+            itemsAuditoria.forEach(item => {
+                const textoItem = item.innerText.toLowerCase();
+                if (textoItem.includes(filtro)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>
