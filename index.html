@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -262,7 +262,26 @@
             </div>
             <div class="input-group"><label>Tarifas o Precios Alternativos</label><input type="text" id="admin-tarifas-evento" placeholder="Ej. General: $5.00 | VIP: $10.00"></div>
             <div class="input-group"><label>Requisitos</label><textarea id="admin-requisitos-evento" placeholder="Ej. Llevar sleeping bag, Biblia..."></textarea></div>
-            <div class="input-group"><label>Banner o Imagen Promocional (URL Opcional)</label><input type="text" id="admin-imagen-evento"></div>
+            
+            <!-- NUEVO SELECTOR MULTIMEDIA PARA EVENTOS -->
+            <div style="background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px;">
+                <label style="color: var(--primary-orange); font-weight: bold; margin-bottom: 10px; display: block;">Banner o Video Promocional del Evento</label>
+                <select id="tipo-multimedia-evento" style="width: 100%; padding: 10px; background: #1e1e1e; color: white; border: 1px solid #555; border-radius: 6px; margin-bottom: 15px;" onchange="cambiarTipoMultimediaEvento()">
+                    <option value="local">📷 Subir Foto / Video Corto desde mi dispositivo</option>
+                    <option value="externo">🎥 Pegar Enlace de Video Largo (YouTube / Google Drive)</option>
+                </select>
+
+                <div id="caja-subir-local-evento" class="input-group">
+                    <label style="color: #aaa; font-size: 13px;">Selecciona un archivo (Máx 15MB recomendado):</label>
+                    <input type="file" id="admin-evento-archivo" accept="image/*,video/*">
+                </div>
+                
+                <div id="caja-subir-externo-evento" class="input-group hidden">
+                    <label style="color: #aaa; font-size: 13px;">Pega el enlace de YouTube o Drive:</label>
+                    <input type="text" id="admin-evento-enlace" placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+            </div>
+            <!-- FIN NUEVO SELECTOR -->
             
             <!-- CONSTRUCTOR DINÁMICO DE GOOGLE FORMS -->
             <hr style="border-color: #444; margin: 25px 0;">
@@ -444,6 +463,19 @@
             document.getElementById('sec-crear-post').classList.add('hidden');
             document.getElementById('sec-gestionar-com').classList.add('hidden');
             document.getElementById(idMostrar).classList.remove('hidden');
+        }
+
+        function cambiarTipoMultimediaEvento() {
+            const selector = document.getElementById('tipo-multimedia-evento').value;
+            if (selector === 'local') {
+                document.getElementById('caja-subir-local-evento').classList.remove('hidden');
+                document.getElementById('caja-subir-externo-evento').classList.add('hidden');
+                document.getElementById('admin-evento-enlace').value = "";
+            } else {
+                document.getElementById('caja-subir-local-evento').classList.add('hidden');
+                document.getElementById('caja-subir-externo-evento').classList.remove('hidden');
+                document.getElementById('admin-evento-archivo').value = "";
+            }
         }
 
         function cambiarTipoMultimedia() {
@@ -741,7 +773,6 @@
             contenedor.innerHTML = "";
             if (datos.length === 0) return contenedor.innerHTML = "<p style='color: #aaa;'>No hay pagos pendientes.</p>";
             datos.forEach(d => {
-                // Parseamos las respuestas dinámicas para mostrárselas al admin si las hay
                 let respuestasExtra = "";
                 try {
                     let obj = JSON.parse(d.Respuestas);
@@ -852,22 +883,29 @@
         }
 
         async function publicarEvento() {
-            const payload = {
-                nombre_evento: document.getElementById('admin-nombre-evento').value.trim(),
-                tipo_evento: document.getElementById('admin-imagen-evento').value.trim() || "General",
-                costo: parseFloat(document.getElementById('admin-costo-evento').value) || 0.0,
-                tarifas: document.getElementById('admin-tarifas-evento').value.trim() || "General",
-                fecha_inicio: document.getElementById('admin-fecha-inicio').value ? (document.getElementById('admin-fecha-inicio').value.includes('T') ? document.getElementById('admin-fecha-inicio').value : `${document.getElementById('admin-fecha-inicio').value}T00:00:00`) : "",
-                fecha_fin: document.getElementById('admin-fecha-fin').value ? (document.getElementById('admin-fecha-fin').value.includes('T') ? document.getElementById('admin-fecha-fin').value : `${document.getElementById('admin-fecha-fin').value}T00:00:00`) : "",
-                requisitos: document.getElementById('admin-requisitos-evento').value || "Ninguno",
-                formulario_json: recopilarFormularioJSON(), // El esqueleto del formulario
-                admin_id: usuarioActualID,
-                admin_nombres: usuarioActualNombres
-            };
+            const nombre = document.getElementById('admin-nombre-evento').value.trim();
+            const fecha_inicio_val = document.getElementById('admin-fecha-inicio').value;
+            if (!nombre || !fecha_inicio_val) return alert("El nombre y la fecha de inicio son obligatorios.");
 
-            if (!payload.nombre_evento || !payload.fecha_inicio) return alert("El nombre y la fecha de inicio son obligatorios.");
+            const formData = new FormData();
+            formData.append("nombre_evento", nombre);
+            formData.append("costo", parseFloat(document.getElementById('admin-costo-evento').value) || 0.0);
+            formData.append("tarifas", document.getElementById('admin-tarifas-evento').value.trim() || "General");
+            formData.append("fecha_inicio", fecha_inicio_val.includes('T') ? fecha_inicio_val : `${fecha_inicio_val}T00:00:00`);
+            
+            const fecha_fin_val = document.getElementById('admin-fecha-fin').value;
+            formData.append("fecha_fin", fecha_fin_val ? (fecha_fin_val.includes('T') ? fecha_fin_val : `${fecha_fin_val}T00:00:00`) : "");
+            
+            formData.append("requisitos", document.getElementById('admin-requisitos-evento').value || "Ninguno");
+            formData.append("formulario_json", recopilarFormularioJSON());
+            formData.append("enlace_externo", document.getElementById('admin-evento-enlace').value.trim());
+            formData.append("admin_id", usuarioActualID);
+            formData.append("admin_nombres", usuarioActualNombres);
 
-            const res = await fetch(`${API_URL}/admin/eventos/`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+            const archivoInput = document.getElementById('admin-evento-archivo');
+            if (archivoInput.files[0]) formData.append("archivo", archivoInput.files[0]);
+
+            const res = await fetch(`${API_URL}/admin/eventos/`, { method: "POST", body: formData });
             if (res.ok) { 
                 alert("¡Evento y Formulario publicados con éxito!"); 
                 document.getElementById('admin-nombre-evento').value = "";
@@ -876,7 +914,8 @@
                 document.getElementById('admin-fecha-inicio').value = "";
                 document.getElementById('admin-fecha-fin').value = "";
                 document.getElementById('admin-requisitos-evento').value = "";
-                document.getElementById('admin-imagen-evento').value = "";
+                document.getElementById('admin-evento-enlace').value = "";
+                if(archivoInput) archivoInput.value = "";
                 document.getElementById('contenedor-preguntas-dinamicas').innerHTML = "";
                 cargarEventosAdmin(); 
             } else alert("Error al publicar evento.");
@@ -955,8 +994,26 @@
                 eventosGlobalesParaFormulario = await res.json();
                 let html = '';
                 eventosGlobalesParaFormulario.forEach(ev => {
-                    let imgHtml = (ev.Tipo_Evento && ev.Tipo_Evento.startsWith('http')) ? `<img class="media-content" src="${ev.Tipo_Evento}">` : '';
-                    html += `<div class="feed-post"><h4 style="color: var(--primary-orange); margin-top:0;">${ev.Nombre_Evento}</h4><p>📅 ${ev.Fecha_Inicio} | 💰 $${ev.Costo}</p><p>📋 ${ev.Requisitos}</p>${imgHtml}<button class="btn btn-blue" style="margin-top: 10px; width:100%;" onclick="abrirModalInscripcion(${ev.ID_Evento}, '${ev.Nombre_Evento}')">📋 Inscribirme y Subir Pago</button></div>`;
+                    let mediaHtml = '';
+                    if (ev.Tipo_Evento && ev.Tipo_Evento.startsWith('http')) {
+                        if (ev.Tipo_Evento.includes('youtube.com') || ev.Tipo_Evento.includes('youtu.be')) {
+                            let videoId = ev.Tipo_Evento.split('v=')[1] || ev.Tipo_Evento.split('youtu.be/')[1];
+                            if(videoId) {
+                                let ampPos = videoId.indexOf('&');
+                                if(ampPos !== -1) videoId = videoId.substring(0, ampPos);
+                                mediaHtml = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="border-radius: 8px; margin-top: 10px;"></iframe>`;
+                            } else {
+                                mediaHtml = `<a href="${ev.Tipo_Evento}" target="_blank" style="color: #4da6ff;">🔗 Ver enlace externo</a>`;
+                            }
+                        } else if (ev.Tipo_Evento.includes('drive.google')) {
+                             mediaHtml = `<a href="${ev.Tipo_Evento}" target="_blank" style="color: #4da6ff; display: block; margin-top: 10px;">🔗 Abrir Video en Google Drive</a>`;
+                        } else if (ev.Tipo_Evento.includes('.mp4') || ev.Tipo_Evento.includes('.webm') || ev.Tipo_Evento.includes('.ogg')) {
+                             mediaHtml = `<video class="media-content" controls src="${ev.Tipo_Evento}"></video>`;
+                        } else {
+                             mediaHtml = `<img class="media-content" src="${ev.Tipo_Evento}">`;
+                        }
+                    }
+                    html += `<div class="feed-post"><h4 style="color: var(--primary-orange); margin-top:0;">${ev.Nombre_Evento}</h4><p>📅 ${ev.Fecha_Inicio} | 💰 $${ev.Costo}</p><p>📋 ${ev.Requisitos}</p>${mediaHtml}<button class="btn btn-blue" style="margin-top: 10px; width:100%;" onclick="abrirModalInscripcion(${ev.ID_Evento}, '${ev.Nombre_Evento}')">📋 Inscribirme y Subir Pago</button></div>`;
                 });
                 document.getElementById('feed-eventos-container').innerHTML = html || '<p>No hay eventos próximos.</p>';
             }
@@ -971,7 +1028,6 @@
                     let mediaHtml = '';
                     if (p.URL_Multimedia) {
                         if (p.Tipo === 'multimedia_externa' && (p.URL_Multimedia.includes('youtube.com') || p.URL_Multimedia.includes('youtu.be'))) {
-                            // Convertir link normal de YouTube a formato Embed para que se reproduzca en la página
                             let videoId = p.URL_Multimedia.split('v=')[1] || p.URL_Multimedia.split('youtu.be/')[1];
                             if(videoId) {
                                 let ampersandPosition = videoId.indexOf('&');
@@ -982,6 +1038,8 @@
                             }
                         } else if (p.Tipo === 'multimedia_externa' && p.URL_Multimedia.includes('drive.google')) {
                              mediaHtml = `<a href="${p.URL_Multimedia}" target="_blank" style="color: #4da6ff; display: block; margin-top: 10px;">🔗 Abrir Video/Archivo en Google Drive</a>`;
+                        } else if (p.Tipo === 'multimedia_local' && (p.URL_Multimedia.includes('.mp4') || p.URL_Multimedia.includes('.webm') || p.URL_Multimedia.includes('.ogg'))) {
+                             mediaHtml = `<video class="media-content" controls src="${p.URL_Multimedia}"></video>`;
                         } else {
                              mediaHtml = `<img class="media-content" src="${p.URL_Multimedia}">`;
                         }
@@ -999,7 +1057,7 @@
             
             // Renderizar Formulario Dinámico
             const contenedorFormulario = document.getElementById('modal-formulario-dinamico');
-            contenedorFormulario.innerHTML = ""; // Limpiar anterior
+            contenedorFormulario.innerHTML = ""; 
             
             const eventoObj = eventosGlobalesParaFormulario.find(e => e.ID_Evento === idEvento);
             if (eventoObj && eventoObj.Formulario_JSON) {
@@ -1032,7 +1090,6 @@
             const archivoInput = document.getElementById('modal-comprobante');
             if (!archivoInput.files[0]) return alert("Falta el comprobante de pago.");
 
-            // Recoger las respuestas dinámicas
             const respuestas = {};
             let formularioValido = true;
             const campos = document.querySelectorAll('.respuesta-usuario');

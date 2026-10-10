@@ -48,11 +48,7 @@ class UsuarioUpdate(BaseModel):
     nombres: str; correo: str; celular: str; rol: str; apostolado: str; nivel_acceso: str
     admin_id: int; admin_nombres: str
 
-class EventoCreate(BaseModel):
-    nombre_evento: str; tipo_evento: str = "General"; costo: float = 0.0; tarifas: str = ""
-    fecha_inicio: str; fecha_fin: str = None; requisitos: str
-    formulario_json: str = "{}" # <-- NUEVO: Para guardar el esqueleto del formulario
-    admin_id: int; admin_nombres: str # <-- NUEVO: Para auditar quién creó el evento
+# El modelo EventoCreate se mantiene como referencia, pero usamos Form/File en la ruta
 
 # ==========================================
 # MÓDULO DE AUDITORÍA
@@ -201,15 +197,40 @@ def actualizar_usuario(id_usuario: int, datos: UsuarioUpdate):
 # EVENTOS Y COMUNICACIÓN
 # ==========================================
 @app.post("/admin/eventos/")
-def crear_evento(evento: EventoCreate):
+def crear_evento(
+    nombre_evento: str = Form(...),
+    costo: float = Form(0.0),
+    tarifas: str = Form("General"),
+    fecha_inicio: str = Form(...),
+    fecha_fin: str = Form(""),
+    requisitos: str = Form("Ninguno"),
+    formulario_json: str = Form("{}"),
+    enlace_externo: str = Form(""), 
+    admin_id: int = Form(...),
+    admin_nombres: str = Form(...),
+    archivo: UploadFile = File(None) 
+):
     db = get_db()
     cursor = db.cursor()
+    
+    tipo_evento = "General" 
+    
+    if archivo and archivo.filename:
+        os.makedirs("uploads", exist_ok=True)
+        nombre_unico = f"{int(time.time())}_{archivo.filename}"
+        ruta_guardado = f"uploads/{nombre_unico}"
+        with open(ruta_guardado, "wb") as buffer:
+            shutil.copyfileobj(archivo.file, buffer)
+        tipo_evento = f"https://gencana-sistema-production.up.railway.app/uploads/{nombre_unico}"
+    elif enlace_externo:
+        tipo_evento = enlace_externo
+
     query = """INSERT INTO Eventos (Nombre_Evento, Tipo_Evento, Costo, Tarifas, Fecha_Inicio, Fecha_Fin, Requisitos, Formulario_JSON) 
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
     try:
-        cursor.execute(query, (evento.nombre_evento, evento.tipo_evento, evento.costo, evento.tarifas, evento.fecha_inicio, evento.fecha_fin, evento.requisitos, evento.formulario_json))
+        cursor.execute(query, (nombre_evento, tipo_evento, costo, tarifas, fecha_inicio, fecha_fin, requisitos, formulario_json))
         db.commit()
-        registrar_auditoria(evento.admin_id, evento.admin_nombres, "Creación de Evento", f"Creó el evento '{evento.nombre_evento}'.")
+        registrar_auditoria(admin_id, admin_nombres, "Creación de Evento", f"Creó el evento '{nombre_evento}'.")
         return {"mensaje": "Evento creado exitosamente"}
     except Exception as e:
         db.rollback()
@@ -252,7 +273,7 @@ def eliminar_evento(evento_id: int, admin_id: int, admin_nombres: str):
 @app.post("/admin/publicaciones/")
 def crear_publicacion(
     titulo: str = Form(...), descripcion: str = Form(...),
-    enlace_externo: str = Form(""), # NUEVO: Video largo
+    enlace_externo: str = Form(""),
     admin_id: int = Form(...), admin_nombres: str = Form(...),
     archivo: UploadFile = File(None)
 ):
@@ -345,7 +366,7 @@ def registrar_asistencia(datos: AsistenciaScan):
 @app.post("/inscripciones/")
 def inscribirse_evento(
     id_participante: int = Form(...), id_evento: int = Form(...),
-    respuestas_json: str = Form("{}"), # NUEVO: Guarda respuestas del Google Form
+    respuestas_json: str = Form("{}"), 
     comprobante: UploadFile = File(...)
 ):
     db = get_db()
@@ -364,7 +385,6 @@ def inscribirse_evento(
 
     try:
         cursor.execute("INSERT INTO Cuotas_Participantes (ID_Participante, ID_Evento, Monto_Total, Abono, Saldo_Pendiente, Estado, Comprobante_URL) VALUES (%s, %s, %s, %s, %s, 'Pendiente', %s)", (id_participante, id_evento, costo, 0, costo, url_comprobante))
-        # Guardar las respuestas del formulario de Google
         cursor.execute("INSERT INTO Respuestas_Inscripcion (ID_Participante, ID_Evento, Respuestas_JSON) VALUES (%s, %s, %s)", (id_participante, id_evento, respuestas_json))
         db.commit()
         return {"mensaje": "Comprobante y formulario enviados con éxito."}
