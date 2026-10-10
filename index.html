@@ -223,11 +223,14 @@
                 <p style="font-size: 14px; color: var(--primary-orange); font-weight: bold;">Mi Credencial QR</p>
                 <div style="width: 140px; height: 140px; background: white; padding: 5px; border-radius: 6px; margin: 0 auto; display: flex; align-items: center; justify-content: center;" id="qr-wrapper"><span>Cargando...</span></div>
                 <button class="btn btn-danger" style="width: 100%; margin-top: 10px; padding: 6px; font-size: 13px;" onclick="descargarQR()">Descargar QR</button>
+                
+                <!-- BOTÓN MÁGICO PARA ADMINISTRADORES -->
+                <button id="btn-acceso-admin" class="btn" style="width: 100%; margin-top: 15px; padding: 10px; font-size: 14px; background: #ffd700; color: black; display: none;"></button>
             </div>
         </div>
     </div>
 
-    <!-- 3. VISTA ANTIGUA DE EVENTOS Y MULTIMEDIA (Se abre con ADMIN999 temporalmente) -->
+    <!-- 3. VISTA TEMPORAL DE EVENTOS Y MULTIMEDIA (ADMIN999) -->
     <div id="admin-view" class="container hidden">
         <div class="nav-bar" style="border-bottom-color: var(--accent-red);">
             <span>🛡️ Creador de Eventos y Multimedia (Comunicación)</span>
@@ -258,14 +261,23 @@
     <div id="admin-general-view" class="container hidden">
         <div class="nav-bar" style="border-bottom-color: #ffd700;">
             <span>👑 Panel de Control - Asesor General</span>
-            <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+            <div>
+                <button class="btn btn-blue" style="padding: 6px 12px; margin: 0; margin-right: 10px;" onclick="toggleView('member-view', 'admin-general-view'); cargarEventosEnMuro();">⬅ Volver al Muro</button>
+                <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+            </div>
         </div>
         <h3 style="color: #ffd700;">👥 Gestión de Usuarios</h3>
         <p style="font-size: 14px; color: #aaa;">Aquí puedes ver y editar a todos los miembros registrados, cambiar sus roles o apostolados, y corregir sus datos.</p>
         <div style="max-height: 300px; overflow-y: auto; background: #1e1e1e; border: 1px solid #333; padding: 10px; border-radius: 8px;">
             <table style="width: 100%; text-align: left; border-collapse: collapse; color: white;">
-                <thead><tr style="border-bottom: 2px solid #444;"><th>Nombre</th><th>Rol</th><th>Apostolado</th><th>Acción</th></tr></thead>
-                <tbody id="tabla-usuarios-general"><tr><td colspan="4">Cargando usuarios...</td></tr></tbody>
+                <thead>
+                    <tr style="border-bottom: 2px solid #444; font-size: 14px; color: #ffd700;">
+                        <th>Perfil y Jerarquía</th>
+                        <th>Contacto y Ubicación</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-usuarios-general"><tr><td colspan="3">Cargando usuarios...</td></tr></tbody>
             </table>
         </div>
         <hr style="border-color: #333; margin: 25px 0;">
@@ -273,7 +285,7 @@
         <div style="max-height: 300px; overflow-y: auto; background: #000; border: 1px solid #333; padding: 10px; border-radius: 8px;" id="caja-auditoria">Cargando historial...</div>
     </div>
 
-    <!-- MODAL DE EDICIÓN (Oculto por defecto con display: none) -->
+    <!-- MODAL DE EDICIÓN -->
     <div id="modal-editar-usuario" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; display: none;">
         <div style="background: var(--card-bg); padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid #ffd700;">
             <h3 style="margin-top: 0; color: #ffd700;">Editar Usuario</h3>
@@ -284,6 +296,14 @@
             <div style="display: flex; gap: 10px;">
                 <div class="input-group" style="flex: 1;"><label>Rol</label><select id="edit-rol"><option value="Integrante">Integrante</option><option value="Coordinador">Coordinador</option><option value="Animador">Animador</option><option value="Asesor">Asesor</option><option value="Asesor General">Asesor General</option></select></div>
                 <div class="input-group" style="flex: 1;"><label>Apostolado</label><select id="edit-apostolado"><option value="Música">Música</option><option value="Evangelización">Evangelización</option><option value="Economía">Economía</option><option value="Misión">Misión</option><option value="Comunicación">Comunicación</option><option value="Espiritualidad">Espiritualidad</option></select></div>
+            </div>
+            <div class="input-group" style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+                <label style="color: #28a745;">Permiso en el Sistema (Poderes)</label>
+                <select id="edit-nivel-acceso" style="border-color: #28a745;">
+                    <option value="Estándar">Miembro Normal (Estándar)</option>
+                    <option value="Admin Economía">Administrador de Economía</option>
+                    <option value="Admin General">Administrador General Supremo</option>
+                </select>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button class="btn" style="flex: 1; background: #ffd700; color: black;" onclick="guardarEdicionUsuario()">Guardar</button>
@@ -296,7 +316,10 @@
     <div id="admin-economia-view" class="container hidden">
         <div class="nav-bar" style="border-bottom-color: #28a745;">
             <span>💰 Panel Financiero - Economía</span>
-            <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+            <div>
+                <button class="btn btn-blue" style="padding: 6px 12px; margin: 0; margin-right: 10px;" onclick="toggleView('member-view', 'admin-economia-view'); cargarEventosEnMuro();">⬅ Volver al Muro</button>
+                <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+            </div>
         </div>
         <h3 style="color: #28a745;">📊 Reporte por Evento</h3>
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -325,7 +348,7 @@
         </div>
     </div>
 
-    <!-- MODAL INSCRIPCIÓN (Oculto por defecto con display: none) -->
+    <!-- MODAL INSCRIPCIÓN -->
     <div id="modal-inscripcion" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; display: none;">
         <div style="background: var(--card-bg); padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid var(--primary-orange);">
             <h3 style="margin-top: 0; color: var(--primary-orange);">Confirmar Inscripción</h3>
@@ -421,7 +444,6 @@
             const idGencana = document.getElementById('login-id').value.trim();
             if (!idGencana) return alert("Ingresa tu número de identificación.");
 
-            // PUERTA TRASERA TEMPORAL
             if (idGencana.toUpperCase() === "ADMIN999") {
                 document.getElementById('auth-view').classList.add('hidden');
                 document.getElementById('admin-view').classList.remove('hidden');
@@ -434,39 +456,37 @@
                 const response = await fetch(`${API_URL}/participantes/buscar/${idGencana}`);
                 if (response.ok) {
                     const usuario = await response.json();
-                    
-                    // VALIDACIÓN DE SEGURIDAD: Si el backend no envía el rol, significa que main.py está desactualizado
-                    if (usuario.rol === undefined) {
-                        return alert("⚠️ ERROR CRÍTICO: El servidor (main.py) no ha sido actualizado en Railway. No se está recibiendo tu Rol ni Apostolado.");
-                    }
+                    if (usuario.nivel_acceso === undefined) return alert("Actualiza main.py en Railway.");
 
                     usuarioActualID = usuario.id_participante;
                     usuarioActualNombres = usuario.nombres;
                     document.getElementById('auth-view').classList.add('hidden');
                     
-                    // RUTEO
-                    if (usuario.rol === 'Asesor General') {
-                        document.getElementById('admin-general-view').classList.remove('hidden');
-                        cargarUsuariosGeneral();
-                        cargarAuditoria();
-                    } 
-                    else if (usuario.apostolado === 'Economía' && (usuario.rol === 'Coordinador' || usuario.rol === 'Asesor')) {
-                        document.getElementById('admin-economia-view').classList.remove('hidden');
-                        cargarEventosEconomia();
-                        cargarPendientes();
+                    // TODOS VAN AL MURO PRIMERO
+                    document.getElementById('member-view').classList.remove('hidden');
+                    document.getElementById('user-name').innerText = usuario.nombres;
+                    document.getElementById('qr-wrapper').innerHTML = `<img src="${API_URL}/qrcodes/${usuario.id_participante}" alt="QR" style="width: 100%; height: 100%; object-fit: contain;">`;
+                    if (usuario.foto_url) {
+                        document.getElementById('profile-pic-box').innerHTML = `<img src="${usuario.foto_url}" alt="Perfil">`;
+                        document.getElementById('btn-foto').innerText = "Cambiar foto";
                     }
-                    else {
-                        document.getElementById('member-view').classList.remove('hidden');
-                        document.getElementById('user-name').innerText = usuario.nombres;
-                        document.getElementById('qr-wrapper').innerHTML = `<img src="${API_URL}/qrcodes/${usuario.id_participante}" alt="QR" style="width: 100%; height: 100%; object-fit: contain;">`;
-                        
-                        if (usuario.foto_url) {
-                            document.getElementById('profile-pic-box').innerHTML = `<img src="${usuario.foto_url}" alt="Perfil">`;
-                            document.getElementById('btn-foto').innerText = "Cambiar foto de perfil";
-                        }
-                        
-                        cargarEventosEnMuro();
-                        cargarPublicacionesEnMuro();
+                    cargarEventosEnMuro();
+                    cargarPublicacionesEnMuro();
+
+                    // LÓGICA DEL BOTÓN MÁGICO ADMINISTRATIVO
+                    const btnAdmin = document.getElementById('btn-acceso-admin');
+                    if (usuario.nivel_acceso === 'Admin General') {
+                        btnAdmin.style.display = 'block';
+                        btnAdmin.innerText = '👑 Abrir Panel de Control General';
+                        btnAdmin.onclick = () => { toggleView('admin-general-view', 'member-view'); cargarUsuariosGeneral(); cargarAuditoria(); };
+                    } else if (usuario.nivel_acceso === 'Admin Economía') {
+                        btnAdmin.style.display = 'block';
+                        btnAdmin.style.background = '#28a745';
+                        btnAdmin.style.color = 'white';
+                        btnAdmin.innerText = '💰 Abrir Panel Financiero';
+                        btnAdmin.onclick = () => { toggleView('admin-economia-view', 'member-view'); cargarEventosEconomia(); cargarPendientes(); };
+                    } else {
+                        btnAdmin.style.display = 'none';
                     }
                 } else {
                     alert("Usuario no encontrado. Revisa tu número GENCANA.");
@@ -486,19 +506,30 @@
             usuarioActualID = null; usuarioActualNombres = null;
         }
 
-        // LÓGICA GENERAL - ASESOR SUPREMO
+        // LÓGICA DEL ADMINISTRADOR GENERAL
         async function cargarUsuariosGeneral() {
             const res = await fetch(`${API_URL}/admin/usuarios`);
             const usuarios = await res.json();
             const tbody = document.getElementById('tabla-usuarios-general');
             tbody.innerHTML = '';
+            
             usuarios.forEach(u => {
+                let colorPermiso = u.Nivel_Acceso === 'Estándar' ? '#aaa' : (u.Nivel_Acceso === 'Admin General' ? '#ffd700' : '#28a745');
                 tbody.innerHTML += `
-                    <tr style="border-bottom: 1px solid #333;">
-                        <td style="padding: 8px;">${u.Nombres} <br><small style="color: #aaa;">${u.Numero_Identificacion}</small></td>
-                        <td style="padding: 8px; color: var(--primary-orange);">${u.Rol}</td>
-                        <td style="padding: 8px;">${u.Apostolado}</td>
-                        <td style="padding: 8px;"><button class="btn btn-blue" style="padding: 4px 8px; font-size: 12px;" onclick='abrirModalEditarUsuario(${JSON.stringify(u)})'>Editar</button></td>
+                    <tr style="border-bottom: 1px solid #333; font-size: 13px;">
+                        <td style="padding: 10px;">
+                            <strong>${u.Nombres}</strong> <small style="color: #888;">(${u.Numero_Identificacion})</small><br>
+                            <span style="color: var(--primary-orange);">${u.Rol}</span> | <span>${u.Apostolado}</span><br>
+                            <span style="color: ${colorPermiso}; font-weight: bold; font-size: 11px;">[${u.Nivel_Acceso}]</span>
+                        </td>
+                        <td style="padding: 10px; color: #bbb;">
+                            📍 ${u.Sede}, ${u.Provincia}<br>
+                            ✉️ ${u.Correo}<br>
+                            📞 ${u.Celular}
+                        </td>
+                        <td style="padding: 10px; text-align: right;">
+                            <button class="btn btn-blue" style="padding: 6px 10px; font-size: 12px;" onclick='abrirModalEditarUsuario(${JSON.stringify(u)})'>Editar Permisos</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -509,10 +540,18 @@
             const registros = await res.json();
             const caja = document.getElementById('caja-auditoria');
             caja.innerHTML = '';
+            
             if (registros.length === 0) return caja.innerHTML = 'No hay movimientos registrados.';
+
             registros.forEach(r => {
                 const fecha = new Date(r.Fecha).toLocaleString('es-EC');
-                caja.innerHTML += `<div style="border-bottom: 1px dashed #444; padding: 10px 0; font-size: 13px;"><span style="color: #ffd700; font-weight: bold;">[${fecha}] ${r.Nombres_Usuario}</span> <span style="color: #2979ff;">(${r.Accion}):</span> <span style="color: #ccc;">${r.Detalle}</span></div>`;
+                caja.innerHTML += `
+                    <div style="border-bottom: 1px dashed #444; padding: 10px 0; font-size: 13px;">
+                        <span style="color: #ffd700; font-weight: bold;">[${fecha}] ${r.Nombres_Usuario}</span> 
+                        <span style="color: #2979ff;">(${r.Accion}):</span> 
+                        <span style="color: #ccc;">${r.Detalle}</span>
+                    </div>
+                `;
             });
         }
 
@@ -523,21 +562,36 @@
             document.getElementById('edit-celular').value = u.Celular;
             document.getElementById('edit-rol').value = u.Rol;
             document.getElementById('edit-apostolado').value = u.Apostolado;
+            document.getElementById('edit-nivel-acceso').value = u.Nivel_Acceso || "Estándar";
             document.getElementById('modal-editar-usuario').style.display = 'flex';
         }
 
         async function guardarEdicionUsuario() {
             const id = document.getElementById('edit-id').value;
             const payload = {
-                nombres: document.getElementById('edit-nombres').value, correo: document.getElementById('edit-correo').value, celular: document.getElementById('edit-celular').value,
-                rol: document.getElementById('edit-rol').value, apostolado: document.getElementById('edit-apostolado').value, admin_id: usuarioActualID, admin_nombres: usuarioActualNombres
+                nombres: document.getElementById('edit-nombres').value,
+                correo: document.getElementById('edit-correo').value,
+                celular: document.getElementById('edit-celular').value,
+                rol: document.getElementById('edit-rol').value,
+                apostolado: document.getElementById('edit-apostolado').value,
+                nivel_acceso: document.getElementById('edit-nivel-acceso').value,
+                admin_id: usuarioActualID,
+                admin_nombres: usuarioActualNombres
             };
-            const res = await fetch(`${API_URL}/admin/usuarios/${id}`, { method: 'PUT', headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+
+            const res = await fetch(`${API_URL}/admin/usuarios/${id}`, {
+                method: 'PUT',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
             if (res.ok) {
-                alert("Usuario actualizado.");
                 document.getElementById('modal-editar-usuario').style.display = 'none';
-                cargarUsuariosGeneral(); cargarAuditoria(); 
-            } else { alert("Error al actualizar usuario."); }
+                cargarUsuariosGeneral();
+                cargarAuditoria(); 
+            } else {
+                alert("Error al actualizar usuario.");
+            }
         }
 
         // LÓGICA ECONOMÍA
@@ -611,14 +665,87 @@
             formData.append("admin_id", usuarioActualID); formData.append("admin_nombres", usuarioActualNombres);
             
             const res = await fetch(`${API_URL}/admin/gastos/`, { method: 'POST', body: formData });
-            if(res.ok) { alert("Gasto registrado."); document.getElementById('gasto-categoria').value = ""; document.getElementById('gasto-monto').value = ""; verReporteEvento(); }
+            if(res.ok) { 
+                alert("Gasto registrado."); 
+                document.getElementById('gasto-categoria').value = ""; 
+                document.getElementById('gasto-monto').value = ""; 
+                if (!document.getElementById('eco-reporte-resultados').classList.contains('hidden')) {
+                    verReporteEvento();
+                }
+            }
         }
 
-        // LÓGICA CREACIÓN EVENTOS (Temporal para ADMIN999)
-        async function publicarEvento() { /* Omitido por brevedad para no romper tu código */ }
-        async function publicarContenido() { /* Omitido por brevedad para no romper tu código */ }
-        async function cargarEventosAdmin() { /* Omitido por brevedad */ }
-        async function cargarPublicacionesAdmin() { /* Omitido por brevedad */ }
+        // LÓGICA CREACIÓN EVENTOS Y PUBLICACIONES (Temporal para ADMIN999)
+        async function publicarEvento() {
+            const payload = {
+                nombre_evento: document.getElementById('admin-nombre-evento').value.trim(),
+                tipo_evento: document.getElementById('admin-imagen-evento').value.trim() || "General",
+                costo: parseFloat(document.getElementById('admin-costo-evento').value) || 0.0,
+                tarifas: document.getElementById('admin-tarifas-evento').value.trim() || "General",
+                fecha_inicio: document.getElementById('admin-fecha-inicio').value ? (document.getElementById('admin-fecha-inicio').value.includes('T') ? document.getElementById('admin-fecha-inicio').value : `${document.getElementById('admin-fecha-inicio').value}T00:00:00`) : "",
+                fecha_fin: document.getElementById('admin-fecha-fin').value ? (document.getElementById('admin-fecha-fin').value.includes('T') ? document.getElementById('admin-fecha-fin').value : `${document.getElementById('admin-fecha-fin').value}T00:00:00`) : "",
+                requisitos: document.getElementById('admin-requisitos-evento').value || "Ninguno"
+            };
+
+            if (!payload.nombre_evento || !payload.fecha_inicio) return alert("El nombre y la fecha de inicio son obligatorios.");
+
+            const res = await fetch(`${API_URL}/admin/eventos/`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+            if (res.ok) { 
+                alert("¡Evento publicado con éxito!"); 
+                document.getElementById('admin-nombre-evento').value = "";
+                document.getElementById('admin-tarifas-evento').value = "";
+                document.getElementById('admin-costo-evento').value = "0.00";
+                document.getElementById('admin-fecha-inicio').value = "";
+                document.getElementById('admin-fecha-fin').value = "";
+                document.getElementById('admin-requisitos-evento').value = "";
+                document.getElementById('admin-imagen-evento').value = "";
+                cargarEventosAdmin(); 
+            } else alert("Error al publicar evento.");
+        }
+
+        async function publicarContenido() {
+            const titulo = document.getElementById('admin-pub-titulo').value.trim();
+            const descripcion = document.getElementById('admin-pub-desc').value.trim();
+            const archivoInput = document.getElementById('admin-pub-archivo');
+
+            if (!titulo || !descripcion) return alert("Título y descripción son obligatorios.");
+
+            const formData = new FormData();
+            formData.append("titulo", titulo); formData.append("descripcion", descripcion);
+            if (archivoInput.files[0]) formData.append("archivo", archivoInput.files[0]);
+
+            const res = await fetch(`${API_URL}/admin/publicaciones/`, { method: "POST", body: formData });
+            if (res.ok) { 
+                alert("Contenido multimedia compartido."); 
+                document.getElementById('admin-pub-titulo').value = "";
+                document.getElementById('admin-pub-desc').value = "";
+                archivoInput.value = "";
+                cargarPublicacionesAdmin(); 
+            } else alert("Error al publicar contenido.");
+        }
+
+        async function cargarEventosAdmin() {
+            const res = await fetch(`${API_URL}/eventos/`);
+            if (res.ok) {
+                const eventos = await res.json();
+                let html = '';
+                eventos.forEach(ev => { html += `<div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;"><div><strong>${ev.Nombre_Evento}</strong> (${ev.Fecha_Inicio})</div><button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarEvento(${ev.ID_Evento})">Eliminar</button></div>`; });
+                document.getElementById('admin-lista-eventos').innerHTML = html || '<p>No hay eventos creados.</p>';
+            }
+        }
+
+        async function cargarPublicacionesAdmin() {
+            const res = await fetch(`${API_URL}/publicaciones/`);
+            if (res.ok) {
+                const pubs = await res.json();
+                let html = '';
+                pubs.forEach(p => { html += `<div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;"><div><strong>${p.Titulo}</strong></div><button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarPublicacion(${p.ID_Publicacion})">Eliminar</button></div>`; });
+                document.getElementById('admin-lista-publicaciones').innerHTML = html || '<p>No hay contenido publicado.</p>';
+            }
+        }
+
+        async function eliminarEvento(id) { if(confirm("¿Eliminar este evento?")) { await fetch(`${API_URL}/admin/eventos/${id}`, {method: "DELETE"}); cargarEventosAdmin(); } }
+        async function eliminarPublicacion(id) { if(confirm("¿Eliminar publicación?")) { await fetch(`${API_URL}/admin/publicaciones/${id}`, {method: "DELETE"}); cargarPublicacionesAdmin(); } }
 
         // MURO NORMAL Y FOTOS
         async function cargarEventosEnMuro() {
@@ -633,6 +760,7 @@
                 document.getElementById('feed-eventos-container').innerHTML = html || '<p>No hay eventos.</p>';
             }
         }
+        
         async function cargarPublicacionesEnMuro() {
             const res = await fetch(`${API_URL}/publicaciones/`);
             if (res.ok) {
