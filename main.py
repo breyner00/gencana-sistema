@@ -295,16 +295,15 @@ def buscar_participante(numero_id: str):
     db = get_db()
     cursor = db.cursor()
     try:
-        # Extraemos Fecha_Nacimiento y Fecha_Ingreso
-        cursor.execute("SELECT ID_Participante, Nombres, Fecha_Nacimiento, Fecha_Ingreso, Foto_URL FROM Participantes WHERE Numero_Identificacion = %s", (numero_id,))
+        # AHORA TAMBIÉN EXTRAEMOS ROL Y APOSTOLADO
+        cursor.execute("SELECT ID_Participante, Nombres, Fecha_Nacimiento, Fecha_Ingreso, Foto_URL, Rol, Apostolado FROM Participantes WHERE Numero_Identificacion = %s", (numero_id,))
         resultado = cursor.fetchone()
         
         if not resultado:
             raise HTTPException(status_code=404, detail="Participante no encontrado")
             
-        id_participante, nombres, fecha_nacimiento, fecha_ingreso, foto_url = resultado
+        id_participante, nombres, fecha_nacimiento, fecha_ingreso, foto_url, rol, apostolado = resultado
         
-        # Sistema automatizado de alertas (Cumpleaños y Aniversario)[cite: 1]
         hoy = datetime.now().date()
         es_cumpleanos = (fecha_nacimiento.month == hoy.month and fecha_nacimiento.day == hoy.day)
         es_aniversario = (fecha_ingreso.month == hoy.month and fecha_ingreso.day == hoy.day)
@@ -314,7 +313,9 @@ def buscar_participante(numero_id: str):
             "nombres": nombres,
             "es_cumpleanos": es_cumpleanos,
             "es_aniversario": es_aniversario,
-            "foto_url": foto_url
+            "foto_url": foto_url,
+            "rol": rol,
+            "apostolado": apostolado
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -548,31 +549,49 @@ def inscribirse_evento(
 # ==========================================
 # 2. ADMINISTRADOR: Aprobar pago (Genera el INGRESO real)
 # ==========================================
+# ==========================================
+# 2. ADMINISTRADOR/ECONOMÍA: Aprobar pago (Genera el INGRESO real y Auditoría)
+# ==========================================
 @app.post("/admin/inscripciones/{id_cuota}/aprobar")
-def aprobar_inscripcion(id_cuota: int):
+def aprobar_inscripcion(
+    id_cuota: int,
+    admin_id: int = Form(...),
+    admin_nombres: str = Form(...)
+):
     db = get_db()
     cursor = db.cursor()
     
     try:
-        # Obtener cuánto costó y de qué evento es
-        cursor.execute("SELECT ID_Evento, Monto_Total FROM Cuotas_Participantes WHERE ID_Cuota = %s", (id_cuota,))
+        # Obtener cuánto costó, de qué evento es, y quién está pagando
+        cursor.execute("""
+            SELECT c.ID_Evento, c.Monto_Total, p.Nombres, e.Nombre_Evento 
+            FROM Cuotas_Participantes c 
+            JOIN Participantes p ON c.ID_Participante = p.ID_Participante
+            JOIN Eventos e ON c.ID_Evento = e.ID_Evento
+            WHERE c.ID_Cuota = %s
+        """, (id_cuota,))
         cuota = cursor.fetchone()
+        
         if not cuota:
             raise HTTPException(status_code=404, detail="Inscripción no encontrada")
             
-        id_evento, monto = cuota[0], cuota[1]
+        id_evento, monto, nombre_inscrito, nombre_evento = cuota[0], cuota[1], cuota[2], cuota[3]
 
         # 1. Actualizar el estado a Pagado
         cursor.execute("UPDATE Cuotas_Participantes SET Estado = 'Pagado', Abono = Monto_Total, Saldo_Pendiente = 0 WHERE ID_Cuota = %s", (id_cuota,))
         
-        # 2. CREAR EL INGRESO PARA POWER BI (Aquí se vuelve dinero real)
+        # 2. CREAR EL INGRESO
         query_transaccion = """INSERT INTO Transacciones_Financieras 
                                (Tipo, Monto, Fecha, Categoria, ID_Evento) 
                                VALUES ('Ingreso', %s, CURDATE(), 'Inscripcion Validada', %s)"""
         cursor.execute(query_transaccion, (monto, id_evento))
-        
         db.commit()
-        return {"mensaje": "Pago aprobado. Dinero registrado en el balance general."}
+
+        # 3. GUARDAR EN LA AUDITORÍA
+        detalle = f"Aprobó el pago de ${monto} del participante {nombre_inscrito} para el evento '{nombre_evento}'."
+        registrar_auditoria(admin_id, admin_nombres, "Aprobación de Pago", detalle)
+
+        return {"mensaje": "Pago aprobado. Dinero registrado y auditado."}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -580,17 +599,34 @@ def aprobar_inscripcion(id_cuota: int):
         cursor.close()
         db.close()
 # ==========================================
-# 2.5 ADMINISTRADOR: Rechazar pago / Anular inscripción
+# 2.5 ADMINISTRADOR/ECONOMÍA: Rechazar pago / Anular inscripción
 # ==========================================
 @app.delete("/admin/inscripciones/{id_cuota}/rechazar")
-def rechazar_inscripcion(id_cuota: int):
+def rechazar_inscripcion(
+    id_cuota: int,
+    admin_id: int = Form(...),
+    admin_nombres: str = Form(...)
+):
     db = get_db()
     cursor = db.cursor()
     try:
-        # Al borrar la cuota pendiente, el usuario pierde su lugar temporal 
-        # y el sistema le permitirá volver a inscribirse (evadiendo el bloqueo de duplicados).
+        # Primero obtenemos el nombre para la auditoría antes de borrar
+        cursor.execute("""
+            SELECT p.Nombres, e.Nombre_Evento 
+            FROM Cuotas_Participantes c 
+            JOIN Participantes p ON c.ID_Participante = p.ID_Participante
+            JOIN Eventos e ON c.ID_Evento = e.ID_Evento
+            WHERE c.ID_Cuota = %s
+        """, (id_cuota,))
+        info = cursor.fetchone()
+        
         cursor.execute("DELETE FROM Cuotas_Participantes WHERE ID_Cuota = %s", (id_cuota,))
         db.commit()
+
+        if info:
+            detalle = f"Rechazó/Anuló la inscripción y comprobante del participante {info[0]} para el evento '{info[1]}'."
+            registrar_auditoria(admin_id, admin_nombres, "Anulación de Inscripción", detalle)
+
         return {"mensaje": "Pago rechazado. Inscripción anulada exitosamente."}
     except Exception as e:
         db.rollback()
@@ -600,24 +636,37 @@ def rechazar_inscripcion(id_cuota: int):
         db.close()
 
 # ==========================================
-# 3. ADMINISTRADOR: Registrar Gasto Operativo
+# 3. ADMINISTRADOR/ECONOMÍA: Registrar Gasto Operativo
 # ==========================================
 @app.post("/admin/gastos/")
 def registrar_gasto(
     id_evento: int = Form(...),
     monto: float = Form(...),
-    categoria: str = Form(...) # Ej: Transporte, Comida, Materiales
+    categoria: str = Form(...),
+    admin_id: int = Form(...),
+    admin_nombres: str = Form(...)
 ):
     db = get_db()
     cursor = db.cursor()
     
-    # Crea el EGRESO directo para que Power BI lo descuente
-    query = """INSERT INTO Transacciones_Financieras 
-               (Tipo, Monto, Fecha, Categoria, ID_Evento) 
-               VALUES ('Egreso', %s, CURDATE(), %s, %s)"""
     try:
+        # Crea el EGRESO directo
+        query = """INSERT INTO Transacciones_Financieras 
+                   (Tipo, Monto, Fecha, Categoria, ID_Evento) 
+                   VALUES ('Egreso', %s, CURDATE(), %s, %s)"""
         cursor.execute(query, (monto, categoria, id_evento))
+        
+        # Obtener el nombre del evento para la auditoría
+        cursor.execute("SELECT Nombre_Evento FROM Eventos WHERE ID_Evento = %s", (id_evento,))
+        evento = cursor.fetchone()
+        nombre_evento = evento[0] if evento else f"ID {id_evento}"
+
         db.commit()
+
+        # Guardar en la Auditoría
+        detalle = f"Registró un gasto de ${monto} por concepto de '{categoria}' en el evento '{nombre_evento}'."
+        registrar_auditoria(admin_id, admin_nombres, "Registro de Gasto", detalle)
+
         return {"mensaje": "Gasto operativo descontado con éxito."}
     except Exception as e:
         db.rollback()
@@ -642,3 +691,112 @@ def obtener_pendientes():
     cursor.close()
     db.close()
     return pendientes
+
+# ==========================================
+# MÓDULO DE AUDITORÍA Y ADMINISTRACIÓN GENERAL
+# ==========================================
+def registrar_auditoria(id_usuario, nombres, accion, detalle):
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        cursor.execute("INSERT INTO Auditoria (ID_Usuario, Nombres_Usuario, Accion, Detalle) VALUES (%s, %s, %s, %s)",
+                       (id_usuario, nombres, accion, detalle))
+        db.commit()
+    except Exception as e:
+        print("Error en auditoría:", e)
+    finally:
+        cursor.close()
+        db.close()
+
+@app.get("/admin/auditoria")
+def obtener_auditoria():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM Auditoria ORDER BY Fecha DESC LIMIT 100")
+    resultados = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return resultados
+
+@app.get("/admin/usuarios")
+def obtener_usuarios():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT ID_Participante, Nombres, Numero_Identificacion, Correo, Celular, Provincia, Sede, Rol, Apostolado FROM Participantes ORDER BY Nombres ASC")
+    usuarios = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return usuarios
+
+class UsuarioUpdate(BaseModel):
+    nombres: str
+    correo: str
+    celular: str
+    rol: str
+    apostolado: str
+    admin_id: int
+    admin_nombres: str
+
+@app.put("/admin/usuarios/{id_usuario}")
+def actualizar_usuario(id_usuario: int, datos: UsuarioUpdate):
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        cursor.execute("""
+            UPDATE Participantes 
+            SET Nombres=%s, Correo=%s, Celular=%s, Rol=%s, Apostolado=%s 
+            WHERE ID_Participante=%s
+        """, (datos.nombres, datos.correo, datos.celular, datos.rol, datos.apostolado, id_usuario))
+        db.commit()
+        
+        # Registrar el movimiento en la auditoría
+        registrar_auditoria(datos.admin_id, datos.admin_nombres, "Edición de Usuario", f"Se editó el perfil del usuario ID {id_usuario} (Rol: {datos.rol}, Apostolado: {datos.apostolado})")
+        return {"mensaje": "Usuario actualizado correctamente."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+# ==========================================
+# MÓDULO EXCLUSIVO DE ECONOMÍA
+# ==========================================
+@app.get("/economia/eventos/{id_evento}/reporte")
+def reporte_financiero_evento(id_evento: int):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    try:
+        # 1. Total Recaudado (Ingresos)
+        cursor.execute("SELECT SUM(Monto) as Total_Ingresos FROM Transacciones_Financieras WHERE ID_Evento = %s AND Tipo = 'Ingreso'", (id_evento,))
+        ingresos = cursor.fetchone()['Total_Ingresos'] or 0.0
+
+        # 2. Total Gastado (Egresos)
+        cursor.execute("SELECT SUM(Monto) as Total_Egresos FROM Transacciones_Financieras WHERE ID_Evento = %s AND Tipo = 'Egreso'", (id_evento,))
+        egresos = cursor.fetchone()['Total_Egresos'] or 0.0
+
+        # 3. Lista de Inscritos y su Estado de Pago
+        cursor.execute("""
+            SELECT p.Nombres, c.Abono, c.Estado 
+            FROM Cuotas_Participantes c 
+            JOIN Participantes p ON c.ID_Participante = p.ID_Participante 
+            WHERE c.ID_Evento = %s
+        """, (id_evento,))
+        inscritos = cursor.fetchall()
+
+        # 4. Lista detallada de Gastos
+        cursor.execute("SELECT Categoria, Monto, Fecha FROM Transacciones_Financieras WHERE ID_Evento = %s AND Tipo = 'Egreso' ORDER BY Fecha DESC", (id_evento,))
+        lista_gastos = cursor.fetchall()
+
+        return {
+            "ingresos": float(ingresos),
+            "egresos": float(egresos),
+            "balance": float(ingresos - egresos),
+            "inscritos": inscritos,
+            "gastos": lista_gastos
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        db.close()

@@ -276,191 +276,205 @@
         </div>
     </div>
 
-    <!-- VISTA DEL ADMINISTRADOR -->
-    <div id="admin-view" class="container hidden">
-        <div class="nav-bar" style="border-bottom-color: var(--accent-red);">
-            <span>🛡️ Panel de Administración GENCANA</span>
+    <!-- ========================================== -->
+    <!-- VISTA DEL ADMINISTRADOR GENERAL (EL JEFE SUPREMO) -->
+    <!-- ========================================== -->
+    <div id="admin-general-view" class="container hidden">
+        <div class="nav-bar" style="border-bottom-color: #ffd700;">
+            <span>👑 Panel de Control - Asesor General</span>
             <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
         </div>
-        
-        <h3>Crear Evento con Publicidad</h3>
-        <div class="input-group"><label>Nombre del Evento</label><input type="text" id="admin-nombre-evento"></div>
-        <div class="input-group"><label>Tarifas o Precios (Ej. General: $3.50 | VIP: $5.00)</label><input type="text" id="admin-tarifas-evento"></div>
-        <div class="input-group"><label>Costo Base general ($)</label><input type="number" id="admin-costo-evento" value="0.00"></div>
-        <div class="input-group"><label>Fecha de Inicio</label><input type="date" id="admin-fecha-inicio"></div>
-        <div class="input-group"><label>Fecha de Fin (Opcional si dura más de un día)</label><input type="date" id="admin-fecha-fin"></div>
-        <div class="input-group"><label>Requisitos y Detalles</label><textarea id="admin-requisitos-evento"></textarea></div>
-        <div class="input-group"><label>Imagen Publicitaria (URL)</label><input type="text" id="admin-imagen-evento" placeholder="https://..."></div>
-        <button class="btn" onclick="publicarEvento()">Publicar Evento</button>
-        
-        <hr style="border-color: #333; margin: 25px 0;">
-        
-        <h3>📢 Compartir Contenido Multimedia</h3>
-        <div class="input-group"><label>Título de la Publicación</label><input type="text" id="admin-pub-titulo"></div>
-        <div class="input-group"><label>Descripción / Historia</label><textarea id="admin-pub-desc"></textarea></div>
-        
-        <!-- Campo actualizado para subir archivos desde la PC -->
-        <div class="input-group">
-            <label>Subir Archivo (Imagen o Video)</label>
-            <input type="file" id="admin-pub-archivo" accept="image/*,video/*">
+
+        <h3 style="color: #ffd700;">👥 Gestión de Usuarios</h3>
+        <p style="font-size: 14px; color: #aaa;">Aquí puedes ver y editar a todos los miembros registrados, cambiar sus roles o apostolados, y corregir sus datos.</p>
+        <div style="max-height: 300px; overflow-y: auto; background: #1e1e1e; border: 1px solid #333; padding: 10px; border-radius: 8px;">
+            <table style="width: 100%; text-align: left; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #444;">
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                        <th>Apostolado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-usuarios-general">
+                    <tr><td colspan="4">Cargando usuarios...</td></tr>
+                </tbody>
+            </table>
         </div>
-        <button class="btn btn-blue" onclick="publicarContenido()">Compartir en el Muro</button>
 
         <hr style="border-color: #333; margin: 25px 0;">
-        <h3>Eventos Activos (Eliminación)</h3>
-        <div id="admin-lista-eventos"></div>
 
-        <hr style="border-color: #333; margin: 25px 0;">
-        <h3>Contenido Multimedia Activo (Eliminación)</h3>
-        <div id="admin-lista-publicaciones"></div>
+        <h3 style="color: #ffd700;">🕵️‍♂️ Bitácora de Auditoría</h3>
+        <p style="font-size: 14px; color: #aaa;">Registro inmutable de todos los movimientos administrativos realizados en el sistema.</p>
+        <div style="max-height: 300px; overflow-y: auto; background: #000; border: 1px solid #333; padding: 10px; border-radius: 8px;" id="caja-auditoria">
+            Cargando historial...
+        </div>
     </div>
-    <!-- PANEL FINANCIERO DEL ADMINISTRADOR -->
-    <div id="panel-admin-finanzas" style="display: none; padding: 20px; border: 2px solid var(--primary-orange); border-radius: 10px; margin-top: 30px; background: #121212;">
-        <h2 style="color: var(--primary-orange);">💰 Panel de Control Financiero</h2>
-        
-        <!-- Sección 1: Validar Pagos -->
-        <div style="margin-bottom: 30px;">
-            <h3 style="color: white;">Validar Inscripciones Pendientes</h3>
-            <button class="btn" onclick="cargarPendientes()">Actualizar Lista</button>
-            <div id="lista-pendientes" style="margin-top: 15px;"></div>
-        </div>
 
-        <!-- Sección 2: Registrar Gasto Operativo -->
-        <div style="background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #444;">
-            <h3 style="color: white; margin-top: 0;">Registrar Egreso (Gasto)</h3>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <select id="gasto-id-evento" style="padding: 8px; border-radius: 5px; border: 1px solid #555; background: #333; color: white;">
-    <option value="">Selecciona un Evento...</option>
-</select>
-                <input type="text" id="gasto-categoria" placeholder="Categoría (Ej. Transporte, Comida)" style="padding: 8px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; flex: 1;">
-                <input type="number" id="gasto-monto" placeholder="Monto ($)" style="padding: 8px; border-radius: 5px; border: 1px solid #555; background: #333; color: white;">
-                <button class="btn" onclick="enviarGasto()">Descontar de Caja</button>
+    <!-- Modal para editar usuario -->
+    <div id="modal-editar-usuario" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; display: flex;">
+        <div style="background: var(--card-bg); padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid #ffd700;">
+            <h3 style="margin-top: 0; color: #ffd700;">Editar Usuario</h3>
+            <input type="hidden" id="edit-id">
+            
+            <div class="input-group"><label>Nombres Completos</label><input type="text" id="edit-nombres"></div>
+            <div class="input-group"><label>Correo</label><input type="email" id="edit-correo"></div>
+            <div class="input-group"><label>Celular</label><input type="text" id="edit-celular"></div>
+            
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Rol</label>
+                    <select id="edit-rol">
+                        <option value="Integrante">Integrante</option>
+                        <option value="Coordinador">Coordinador</option>
+                        <option value="Animador">Animador</option>
+                        <option value="Asesor">Asesor</option>
+                        <option value="Asesor General">Asesor General</option>
+                    </select>
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Apostolado</label>
+                    <select id="edit-apostolado">
+                        <option value="Música">Música</option>
+                        <option value="Evangelización">Evangelización</option>
+                        <option value="Economía">Economía</option>
+                        <option value="Misión">Misión</option>
+                        <option value="Comunicación">Comunicación</option>
+                        <option value="Espiritualidad">Espiritualidad</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" style="flex: 1; background: #ffd700; color: black;" onclick="guardarEdicionUsuario()">Guardar Cambios</button>
+                <button class="btn btn-danger" style="flex: 1;" onclick="document.getElementById('modal-editar-usuario').style.display='none'">Cancelar</button>
             </div>
         </div>
     </div>
 
-    <script>
-    // Lógica dinámica para cargar sedes y códigos telefónicos
-    function actualizarSedesYTelefonos() {
-        const provincia = document.getElementById('reg-provincia').value;
-        const selectSede = document.getElementById('reg-sede');
-        const prefixCelular = document.getElementById('prefix-celular');
-        const prefixEmergencia = document.getElementById('prefix-emergencia');
-        
-        const sedesEcuador = ["Cristo Resucitado", "La Gasca", "Carcelén", "Rumiñahui", "La Dolorosa", "Chillogallo", "El Barco", "Cutuglahua", "San Pedro de Tahuada", "Sangolqui", "La Arcadia"];
-        const sedesPeru = ["Chiclayo", "Patapo", "La Cría", "Pucalá"];
-        
-        selectSede.innerHTML = '<option value="">Selecciona tu sede...</option>';
-        
-        let opciones = [];
-        let prefijoPais = "+??"; // Por defecto si no elige nada
+    <!-- ========================================== -->
+    <!-- VISTA EXCLUSIVA DEL APOSTOLADO DE ECONOMÍA -->
+    <!-- ========================================== -->
+    <div id="admin-economia-view" class="container hidden">
+        <div class="nav-bar" style="border-bottom-color: #28a745;">
+            <span>💰 Panel Financiero - Economía</span>
+            <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+        </div>
 
-        if (provincia === "Ecuador") {
-            opciones = sedesEcuador;
-            prefijoPais = "+593";
-        } else if (provincia === "Perú") {
-            opciones = sedesPeru;
-            prefijoPais = "+51";
-        }
-        
-        // Renderizar las sedes
-        opciones.forEach(sede => {
-            selectSede.innerHTML += `<option value="${sede}">${sede}</option>`;
-        });
+        <!-- REPORTE POR EVENTO -->
+        <h3 style="color: #28a745;">📊 Reporte Financiero por Evento</h3>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <select id="eco-select-evento" style="flex: 1; padding: 10px; background: #2a2a2a; color: white; border: 1px solid #444; border-radius: 6px;">
+                <option value="">Selecciona un evento...</option>
+            </select>
+            <button class="btn btn-blue" onclick="verReporteEvento()">Generar Reporte</button>
+        </div>
 
-        // Actualizar visualmente los recuadros de código de país
-        prefixCelular.innerText = prefijoPais;
-        prefixEmergencia.innerText = prefijoPais;
-    }
+        <div id="eco-reporte-resultados" class="hidden" style="background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; text-align: center; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <span style="color: #aaa; font-size: 12px;">INGRESOS</span><br>
+                    <span id="rep-ingresos" style="color: #28a745; font-size: 24px; font-weight: bold;">$0.00</span>
+                </div>
+                <div style="flex: 1; border-left: 1px solid #444; border-right: 1px solid #444;">
+                    <span style="color: #aaa; font-size: 12px;">EGRESOS</span><br>
+                    <span id="rep-egresos" style="color: var(--accent-red); font-size: 24px; font-weight: bold;">$0.00</span>
+                </div>
+                <div style="flex: 1;">
+                    <span style="color: #aaa; font-size: 12px;">BALANCE FINAL</span><br>
+                    <span id="rep-balance" style="color: #ffd700; font-size: 24px; font-weight: bold;">$0.00</span>
+                </div>
+            </div>
+            <!-- Aquí listaremos quiénes pagaron -->
+            <div id="rep-lista-inscritos" style="font-size: 13px; color: #ccc; max-height: 150px; overflow-y: auto;"></div>
+        </div>
 
-    // Función para enviar todos los datos al backend
-    async function registrarNuevoUsuario() {
-        // Extraemos el código de país que el sistema detectó
-        const prefijo = document.getElementById('prefix-celular').innerText;
-        
-        let celularBase = document.getElementById('reg-celular').value.trim();
-        let emergenciaBase = document.getElementById('reg-emergencia').value.trim();
-        
-        // NUEVO: Eliminar el '0' inicial si el usuario lo escribió
-        if (celularBase.startsWith('0')) {
-            celularBase = celularBase.substring(1);
-        }
-        if (emergenciaBase.startsWith('0')) {
-            emergenciaBase = emergenciaBase.substring(1);
-        }
-        
-        // Unimos el código de país con el número limpio
-        const celularCompleto = (prefijo !== "+??" ? prefijo + " " : "") + celularBase;
-        const emergenciaCompleto = (prefijo !== "+??" ? prefijo + " " : "") + emergenciaBase;
+        <hr style="border-color: #333; margin: 25px 0;">
 
-        const payload = {
-            nombres: document.getElementById('reg-nombres').value.trim(),
-            correo: document.getElementById('reg-correo').value.trim(),
-            fecha_nacimiento: document.getElementById('reg-nacimiento').value,
-            genero: document.getElementById('reg-genero').value,
-            celular: celularCompleto,
-            numero_emergencia: emergenciaCompleto,
-            parentesco_emergencia: document.getElementById('reg-parentesco').value.trim(),
-            provincia: document.getElementById('reg-provincia').value,
-            sede: document.getElementById('reg-sede').value,
-            rol: document.getElementById('reg-rol').value,
-            apostolado: document.getElementById('reg-apostolado').value,
-            numero_identificacion: "PENDIENTE",
-            telefono: celularCompleto, // Lo guardamos también aquí por retrocompatibilidad
-            fecha_ingreso: `${document.getElementById('reg-year').value.trim() || '2024'}-${document.getElementById('reg-month').value}-01`
-        };
+        <!-- VALIDAR PAGOS Y GASTOS (Reutilizando lo que ya tenías, pero adaptado) -->
+        <h3 style="color: white;">✅ Validar Transferencias Pendientes</h3>
+        <button class="btn" style="background: #28a745;" onclick="cargarPendientes()">Actualizar Lista de Pagos</button>
+        <div id="lista-pendientes" style="margin-top: 15px;"></div>
 
-        if (!payload.nombres || !payload.fecha_nacimiento || !celularBase || !payload.provincia || !payload.sede) {
-            return alert("Por favor, completa todos los campos principales (Nombres, Fecha, Celular, Provincia y Sede).");
-        }
+        <hr style="border-color: #333; margin: 25px 0;">
 
-        const response = await fetch(`${API_URL}/participantes/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+        <h3 style="color: white;">💸 Registrar Egreso (Gasto)</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <select id="gasto-id-evento" style="padding: 10px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: white;">
+                <option value="">Selecciona un Evento...</option>
+            </select>
+            <input type="text" id="gasto-categoria" placeholder="Categoría (Ej. Comida)" style="padding: 10px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: white; flex: 1;">
+            <input type="number" id="gasto-monto" placeholder="Monto ($)" style="padding: 10px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: white; width: 100px;">
+            <button class="btn btn-danger" onclick="enviarGasto()">Descontar</button>
+        </div>
+    </div>
 
-        if (response.ok) {
-            const data = await response.json();
-            alert(`¡Registro exitoso! Tu Número GENCANA es: ${data.numero_asignado}. Úsalo para iniciar sesión.`);
-            toggleView('login-form', 'register-form');
-            document.getElementById('login-id').value = data.numero_asignado;
-        } else {
-            // Captura el mensaje exacto del servidor (como el del correo duplicado)
-            const errorData = await response.json();
-            alert(errorData.detail || "Error al registrar. Revisa los datos.");
-        }
-    }
-    </script>
-    
     <script>
         const API_URL = "https://gencana-sistema-production.up.railway.app";
         let usuarioActualID = null;
+        let usuarioActualNombres = null;
 
         function toggleView(showId, hideId) {
             document.getElementById(hideId).classList.add('hidden');
             document.getElementById(showId).classList.remove('hidden');
         }
 
-        async function registrarUsuario() {
-            const nombres = document.getElementById('reg-nombres').value.trim();
-            const year = document.getElementById('reg-year').value.trim();
-            const month = document.getElementById('reg-month').value || "01";
-            const fechaNacimiento = document.getElementById('reg-nacimiento').value;
+        // ==========================================
+        // LÓGICA DE REGISTRO E INICIO DE SESIÓN
+        // ==========================================
+        function actualizarSedesYTelefonos() {
+            const provincia = document.getElementById('reg-provincia').value;
+            const selectSede = document.getElementById('reg-sede');
+            const prefixCelular = document.getElementById('prefix-celular');
+            const prefixEmergencia = document.getElementById('prefix-emergencia');
+            
+            const sedesEcuador = ["Cristo Resucitado", "La Gasca", "Carcelén", "Rumiñahui", "La Dolorosa", "Chillogallo", "El Barco", "Cutuglahua", "San Pedro de Tahuada", "Sangolqui", "La Arcadia"];
+            const sedesPeru = ["Chiclayo", "Patapo", "La Cría", "Pucalá"];
+            
+            selectSede.innerHTML = '<option value="">Selecciona tu sede...</option>';
+            let opciones = [];
+            let prefijoPais = "+??";
 
-            if (!nombres || !year || !fechaNacimiento) {
-                alert("Completa todos los campos obligatorios.");
-                return;
-            }
+            if (provincia === "Ecuador") { opciones = sedesEcuador; prefijoPais = "+593"; } 
+            else if (provincia === "Perú") { opciones = sedesPeru; prefijoPais = "+51"; }
+            
+            opciones.forEach(sede => selectSede.innerHTML += `<option value="${sede}">${sede}</option>`);
+            prefixCelular.innerText = prefijoPais;
+            prefixEmergencia.innerText = prefijoPais;
+        }
+
+        async function registrarNuevoUsuario() {
+            const prefijo = document.getElementById('prefix-celular').innerText;
+            let celularBase = document.getElementById('reg-celular').value.trim();
+            let emergenciaBase = document.getElementById('reg-emergencia').value.trim();
+            
+            if (celularBase.startsWith('0')) celularBase = celularBase.substring(1);
+            if (emergenciaBase.startsWith('0')) emergenciaBase = emergenciaBase.substring(1);
+            
+            const celularCompleto = (prefijo !== "+??" ? prefijo + " " : "") + celularBase;
+            const emergenciaCompleto = (prefijo !== "+??" ? prefijo + " " : "") + emergenciaBase;
 
             const payload = {
-                nombres: nombres,
-                numero_identificacion: "PENDIENTE", // Lo genera el backend
-                fecha_nacimiento: fechaNacimiento,
-                genero: "Otro",
-                telefono: "S/N",
-                fecha_ingreso: `${year}-${month}-01`
+                nombres: document.getElementById('reg-nombres').value.trim(),
+                correo: document.getElementById('reg-correo').value.trim(),
+                fecha_nacimiento: document.getElementById('reg-nacimiento').value,
+                genero: document.getElementById('reg-genero').value,
+                celular: celularCompleto,
+                numero_emergencia: emergenciaCompleto,
+                parentesco_emergencia: document.getElementById('reg-parentesco').value.trim(),
+                provincia: document.getElementById('reg-provincia').value,
+                sede: document.getElementById('reg-sede').value,
+                rol: document.getElementById('reg-rol').value,
+                apostolado: document.getElementById('reg-apostolado').value,
+                numero_identificacion: "PENDIENTE",
+                telefono: celularCompleto,
+                fecha_ingreso: `${document.getElementById('reg-year').value.trim() || '2024'}-${document.getElementById('reg-month').value}-01`
             };
+
+            if (!payload.nombres || !payload.fecha_nacimiento || !celularBase || !payload.provincia || !payload.sede) {
+                return alert("Completa todos los campos principales (Nombres, Fecha, Celular, Provincia y Sede).");
+            }
 
             const response = await fetch(`${API_URL}/participantes/`, {
                 method: "POST",
@@ -470,11 +484,12 @@
 
             if (response.ok) {
                 const data = await response.json();
-                alert(`¡Registro exitoso! Tu Número de Identificación GENCANA asignado es: ${data.numero_asignado}. Guárdalo para iniciar sesión.`);
+                alert(`¡Registro exitoso! Tu Número GENCANA es: ${data.numero_asignado}. Úsalo para iniciar sesión.`);
                 toggleView('login-form', 'register-form');
                 document.getElementById('login-id').value = data.numero_asignado;
             } else {
-                alert("Error al registrar usuario.");
+                const errorData = await response.json();
+                alert(errorData.detail || "Error al registrar. Revisa los datos.");
             }
         }
 
@@ -482,158 +497,267 @@
             const idGencana = document.getElementById('login-id').value.trim();
             if (!idGencana) return alert("Ingresa tu número de identificación.");
 
-            if (idGencana.toUpperCase() === "ADMIN999") {
-                document.getElementById('auth-view').classList.add('hidden');
-                document.getElementById('admin-view').classList.remove('hidden');
-                cargarEventosAdmin();
-                cargarPublicacionesAdmin();
-                document.getElementById('panel-admin-finanzas').style.display = 'block';
-                cargarEventosParaGastos();
-                return;
-            }
-            
-
             try {
                 const response = await fetch(`${API_URL}/participantes/buscar/${idGencana}`);
                 if (response.ok) {
                     const usuario = await response.json();
                     usuarioActualID = usuario.id_participante;
+                    usuarioActualNombres = usuario.nombres;
                     
                     document.getElementById('auth-view').classList.add('hidden');
-                    document.getElementById('member-view').classList.remove('hidden');
                     
-                    document.getElementById('user-name').innerText = usuario.nombres;
-                    document.getElementById('qr-wrapper').innerHTML = `<img src="${API_URL}/qrcodes/${usuario.id_participante}" alt="QR" style="width: 100%; height: 100%; object-fit: contain;">`;
-
-                    if (usuario.foto_url) {
-                        document.getElementById('profile-pic-box').innerHTML = `<img src="${usuario.foto_url}" alt="Perfil">`;
-                        document.getElementById('btn-foto').innerText = "Cambiar foto de perfil";
-                    } else {
-                        document.getElementById('profile-pic-box').innerHTML = `<span style="font-size: 12px; color: #aaa;">Sin Foto</span>`;
-                        document.getElementById('btn-foto').innerText = "Subir foto de perfil";
+                    if (usuario.rol === 'Asesor General') {
+                        document.getElementById('admin-general-view').classList.remove('hidden');
+                        cargarUsuariosGeneral();
+                        cargarAuditoria();
+                    } 
+                    else if (usuario.apostolado === 'Economía' && (usuario.rol === 'Coordinador' || usuario.rol === 'Asesor')) {
+                        document.getElementById('admin-economia-view').classList.remove('hidden');
+                        cargarEventosEconomia();
+                        cargarPendientes();
                     }
-
-                    const banner = document.getElementById('celebration-banner');
-                    if (usuario.es_cumpleanos) {
-                        banner.innerText = "🎉 ¡Feliz Cumpleaños! GENCANA celebra tu vida hoy. 🎂";
-                        banner.classList.remove('hidden');
-                    } else if (usuario.es_aniversario) {
-                        banner.innerText = "🎊 ¡Feliz Aniversario en el movimiento! Gracias por tu compromiso. 💙";
-                        banner.classList.remove('hidden');
-                    }
-
-                    // Se asegura de que las funciones existan antes de llamarlas
-                    if (typeof cargarEventosEnMuro === 'function') cargarEventosEnMuro();
-                    if (typeof cargarPublicacionesEnMuro === 'function') cargarPublicacionesEnMuro();
-                } else {
-                    alert("Usuario no encontrado.");
-                }
-            } catch (error) {
-                // Validación silenciosa para evitar el "Falso Positivo"
-                if (document.getElementById('member-view').classList.contains('hidden')) {
-                    alert("Error de conexión al servidor.");
-                }
-            }
-        }
-
-        async function publicarEvento() {
-            const nombre = document.getElementById('admin-nombre-evento').value.trim();
-            const tarifas = document.getElementById('admin-tarifas-evento').value.trim();
-            const costo = document.getElementById('admin-costo-evento').value;
-            const fechaInicio = document.getElementById('admin-fecha-inicio').value;
-            const fechaFin = document.getElementById('admin-fecha-fin').value;
-            const requisitos = document.getElementById('admin-requisitos-evento').value;
-            const imagen = document.getElementById('admin-imagen-evento').value.trim();
-
-            if (!nombre || !fechaInicio) {
-                return alert("El nombre y la fecha de inicio son obligatorios.");
-            }
-
-            const formatoFecha = (fecha) => {
-                if (!fecha) return "";
-                return fecha.includes('T') ? fecha : `${fecha}T00:00:00`;
-            };
-
-            const payload = {
-                nombre_evento: nombre,
-                tipo_evento: imagen || "General",
-                costo: parseFloat(costo) || 0.0,
-                tarifas: tarifas || "General",
-                fecha_inicio: formatoFecha(fechaInicio),
-                fecha_fin: fechaFin ? formatoFecha(fechaFin) : formatoFecha(fechaInicio),
-                requisitos: requisitos || "Ninguno"
-            };
-
-            try {
-                const res = await fetch(`${API_URL}/admin/eventos/`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    alert("¡Evento publicado con éxito!");
-                    document.getElementById('admin-nombre-evento').value = "";
-                    document.getElementById('admin-tarifas-evento').value = "";
-                    document.getElementById('admin-costo-evento').value = "0.00";
-                    document.getElementById('admin-fecha-inicio').value = "";
-                    document.getElementById('admin-fecha-fin').value = "";
-                    document.getElementById('admin-requisitos-evento').value = "";
-                    document.getElementById('admin-imagen-evento').value = "";
-                    cargarEventosAdmin();
-                } else {
-                    const errData = await res.json();
-                    let mensajeError = "Revise los datos";
-                    if (errData.detail) {
-                        if (Array.isArray(errData.detail)) {
-                            mensajeError = errData.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(' | ');
-                        } else if (typeof errData.detail === 'object') {
-                            mensajeError = JSON.stringify(errData.detail);
-                        } else {
-                            mensajeError = errData.detail;
+                    else {
+                        document.getElementById('member-view').classList.remove('hidden');
+                        document.getElementById('user-name').innerText = usuario.nombres;
+                        document.getElementById('qr-wrapper').innerHTML = `<img src="${API_URL}/qrcodes/${usuario.id_participante}" alt="QR" style="width: 100%; height: 100%; object-fit: contain;">`;
+                        
+                        if (usuario.foto_url) {
+                            document.getElementById('profile-pic-box').innerHTML = `<img src="${usuario.foto_url}" alt="Perfil">`;
+                            document.getElementById('btn-foto').innerText = "Cambiar foto de perfil";
                         }
+                        
+                        if (typeof cargarEventosEnMuro === 'function') cargarEventosEnMuro();
+                        if (typeof cargarPublicacionesEnMuro === 'function') cargarPublicacionesEnMuro();
                     }
-                    alert("Error al publicar evento: " + mensajeError);
+                } else {
+                    alert("Usuario no encontrado. Revisa tu número GENCANA.");
                 }
             } catch (error) {
-                alert("Error de conexión con el servidor.");
+                alert("Error de conexión al servidor.");
             }
         }
 
-        async function publicarContenido() {
-            const titulo = document.getElementById('admin-pub-titulo').value.trim();
-            const descripcion = document.getElementById('admin-pub-desc').value.trim();
-            const archivoInput = document.getElementById('admin-pub-archivo');
+        function cerrarSesion() {
+            document.getElementById('admin-view').classList.add('hidden');
+            document.getElementById('admin-general-view').classList.add('hidden');
+            document.getElementById('admin-economia-view').classList.add('hidden');
+            document.getElementById('member-view').classList.add('hidden');
+            document.getElementById('auth-view').classList.remove('hidden');
+            document.getElementById('celebration-banner').classList.add('hidden');
+            document.getElementById('login-id').value = "";
+            document.getElementById('profile-pic-box').innerHTML = `<span style="font-size: 12px; color: #aaa;">Sin Foto</span>`;
+            document.getElementById('btn-foto').innerText = "Subir foto de perfil";
+            usuarioActualID = null;
+            usuarioActualNombres = null;
+        }
 
-            if (!titulo || !descripcion) return alert("Título y descripción son obligatorios.");
+        // ==========================================
+        // LÓGICA DEL ADMINISTRADOR GENERAL
+        // ==========================================
+        async function cargarUsuariosGeneral() {
+            const res = await fetch(`${API_URL}/admin/usuarios`);
+            const usuarios = await res.json();
+            const tbody = document.getElementById('tabla-usuarios-general');
+            tbody.innerHTML = '';
+            
+            usuarios.forEach(u => {
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid #333;">
+                        <td style="padding: 8px;">${u.Nombres} <br><small style="color: #aaa;">${u.Numero_Identificacion}</small></td>
+                        <td style="padding: 8px; color: var(--primary-orange);">${u.Rol}</td>
+                        <td style="padding: 8px;">${u.Apostolado}</td>
+                        <td style="padding: 8px;">
+                            <button class="btn btn-blue" style="padding: 4px 8px; font-size: 12px;" onclick='abrirModalEditarUsuario(${JSON.stringify(u)})'>Editar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function cargarAuditoria() {
+            const res = await fetch(`${API_URL}/admin/auditoria`);
+            const registros = await res.json();
+            const caja = document.getElementById('caja-auditoria');
+            caja.innerHTML = '';
+            
+            if (registros.length === 0) return caja.innerHTML = 'No hay movimientos registrados.';
+
+            registros.forEach(r => {
+                const fecha = new Date(r.Fecha).toLocaleString('es-EC');
+                caja.innerHTML += `
+                    <div style="border-bottom: 1px dashed #444; padding: 10px 0; font-size: 13px;">
+                        <span style="color: #ffd700; font-weight: bold;">[${fecha}] ${r.Nombres_Usuario}</span> 
+                        <span style="color: #2979ff;">(${r.Accion}):</span> 
+                        <span style="color: #ccc;">${r.Detalle}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function abrirModalEditarUsuario(u) {
+            document.getElementById('edit-id').value = u.ID_Participante;
+            document.getElementById('edit-nombres').value = u.Nombres;
+            document.getElementById('edit-correo').value = u.Correo;
+            document.getElementById('edit-celular').value = u.Celular;
+            document.getElementById('edit-rol').value = u.Rol;
+            document.getElementById('edit-apostolado').value = u.Apostolado;
+            document.getElementById('modal-editar-usuario').style.display = 'flex';
+        }
+
+        async function guardarEdicionUsuario() {
+            const id = document.getElementById('edit-id').value;
+            const payload = {
+                nombres: document.getElementById('edit-nombres').value,
+                correo: document.getElementById('edit-correo').value,
+                celular: document.getElementById('edit-celular').value,
+                rol: document.getElementById('edit-rol').value,
+                apostolado: document.getElementById('edit-apostolado').value,
+                admin_id: usuarioActualID,
+                admin_nombres: usuarioActualNombres
+            };
+
+            const res = await fetch(`${API_URL}/admin/usuarios/${id}`, {
+                method: 'PUT',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Usuario actualizado correctamente.");
+                document.getElementById('modal-editar-usuario').style.display = 'none';
+                cargarUsuariosGeneral();
+                cargarAuditoria(); 
+            } else {
+                alert("Error al actualizar usuario.");
+            }
+        }
+
+        // ==========================================
+        // LÓGICA DEL APOSTOLADO DE ECONOMÍA
+        // ==========================================
+        async function cargarEventosEconomia() {
+            const res = await fetch(`${API_URL}/eventos/`);
+            const eventos = await res.json();
+            
+            const selectReporte = document.getElementById('eco-select-evento');
+            const selectGasto = document.getElementById('gasto-id-evento');
+            
+            selectReporte.innerHTML = '<option value="">Selecciona un Evento...</option>';
+            selectGasto.innerHTML = '<option value="">Selecciona un Evento...</option>';
+            
+            eventos.forEach(ev => {
+                selectReporte.innerHTML += `<option value="${ev.ID_Evento}">${ev.Nombre_Evento}</option>`;
+                selectGasto.innerHTML += `<option value="${ev.ID_Evento}">${ev.Nombre_Evento}</option>`;
+            });
+        }
+
+        async function verReporteEvento() {
+            const id = document.getElementById('eco-select-evento').value;
+            if(!id) return alert("Selecciona un evento primero.");
+
+            const res = await fetch(`${API_URL}/economia/eventos/${id}/reporte`);
+            const data = await res.json();
+
+            document.getElementById('rep-ingresos').innerText = `$${data.ingresos.toFixed(2)}`;
+            document.getElementById('rep-egresos').innerText = `$${data.egresos.toFixed(2)}`;
+            document.getElementById('rep-balance').innerText = `$${data.balance.toFixed(2)}`;
+            
+            let inscritosHtml = "<strong>Lista de Inscritos:</strong><br>";
+            data.inscritos.forEach(i => {
+                let color = i.Estado === 'Pagado' ? '#28a745' : 'var(--accent-red)';
+                inscritosHtml += `<span style="color:${color}">● ${i.Nombres} (${i.Estado})</span><br>`;
+            });
+            document.getElementById('rep-lista-inscritos').innerHTML = inscritosHtml;
+            document.getElementById('eco-reporte-resultados').classList.remove('hidden');
+        }
+
+        async function cargarPendientes() {
+            try {
+                const res = await fetch(`${API_URL}/admin/inscripciones/pendientes`);
+                if (!res.ok) throw new Error("Error del servidor");
+                
+                const datos = await res.json();
+                const contenedor = document.getElementById('lista-pendientes');
+                contenedor.innerHTML = "";
+                
+                if (datos.length === 0) {
+                    contenedor.innerHTML = "<p style='color: #aaa;'>No hay pagos pendientes de revisión.</p>";
+                    return;
+                }
+
+                datos.forEach(d => {
+                    contenedor.innerHTML += `
+                        <div style="border: 1px solid #444; padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; color: white;">
+                            <div>
+                                <strong>${d.Nombres}</strong> pagó $${d.Monto_Total} por <em style="color: var(--primary-orange);">${d.Nombre_Evento}</em><br>
+                                <a href="${d.Comprobante_URL}" target="_blank" style="color: #4da6ff; text-decoration: underline; display: inline-block; margin-top: 5px;">📄 Ver Comprobante Subido</a>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn" onclick="aprobarPago(${d.ID_Cuota})" style="background: #28a745; padding: 10px; color: white;">✅ Aprobar</button>
+                                <button class="btn btn-danger" onclick="rechazarPago(${d.ID_Cuota})" style="padding: 10px; color: white;">❌ Rechazar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (error) {
+                alert("Error al cargar la lista.");
+            }
+        }
+
+        async function aprobarPago(idCuota) {
+            const formData = new FormData();
+            formData.append("admin_id", usuarioActualID);
+            formData.append("admin_nombres", usuarioActualNombres);
+
+            const res = await fetch(`${API_URL}/admin/inscripciones/${idCuota}/aprobar`, { method: 'POST', body: formData });
+            if(res.ok) {
+                alert("Pago aprobado. Registrado en Auditoría.");
+                cargarPendientes(); 
+            }
+        }
+
+        async function rechazarPago(idCuota) {
+            if (!confirm("¿Rechazar este pago?")) return;
+            
+            const formData = new FormData();
+            formData.append("admin_id", usuarioActualID);
+            formData.append("admin_nombres", usuarioActualNombres);
+
+            const res = await fetch(`${API_URL}/admin/inscripciones/${idCuota}/rechazar`, { method: 'DELETE', body: formData });
+            if(res.ok) {
+                alert("Inscripción anulada correctamente.");
+                cargarPendientes();
+            }
+        }
+        
+        async function enviarGasto() {
+            const idEvento = document.getElementById('gasto-id-evento').value;
+            const categoria = document.getElementById('gasto-categoria').value;
+            const monto = document.getElementById('gasto-monto').value;
+            
+            if(!idEvento || !categoria || !monto) return alert("Llena todos los campos.");
 
             const formData = new FormData();
-            formData.append("titulo", titulo);
-            formData.append("descripcion", descripcion);
-            if (archivoInput.files[0]) {
-                formData.append("archivo", archivoInput.files[0]);
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/admin/publicaciones/`, {
-                    method: "POST",
-                    body: formData
-                });
-
-                if (res.ok) {
-                    alert("Contenido multimedia compartido con éxito.");
-                    document.getElementById('admin-pub-titulo').value = "";
-                    document.getElementById('admin-pub-desc').value = "";
-                    archivoInput.value = "";
-                    if (typeof cargarPublicacionesAdmin === 'function') cargarPublicacionesAdmin();
-                } else {
-                    alert("Error al publicar contenido.");
+            formData.append("id_evento", idEvento);
+            formData.append("categoria", categoria);
+            formData.append("monto", monto);
+            formData.append("admin_id", usuarioActualID);
+            formData.append("admin_nombres", usuarioActualNombres);
+            
+            const res = await fetch(`${API_URL}/admin/gastos/`, { method: 'POST', body: formData });
+            if(res.ok) {
+                alert("Gasto descontado de la caja y auditado.");
+                document.getElementById('gasto-categoria').value = "";
+                document.getElementById('gasto-monto').value = "";
+                if (!document.getElementById('eco-reporte-resultados').classList.contains('hidden')) {
+                    verReporteEvento();
                 }
-            } catch (error) {
-                alert("Error de conexión al subir el archivo.");
             }
         }
 
+        // ==========================================
+        // FUNCIONES GENERALES DEL MURO
+        // ==========================================
         async function cargarEventosEnMuro() {
             const res = await fetch(`${API_URL}/eventos/`);
             if (res.ok) {
@@ -673,7 +797,6 @@
                         pubs.forEach(p => {
                             let mediaHtml = '';
                             if (p.URL_Multimedia) {
-                                // Soporte inteligente para video e imagen
                                 if (p.URL_Multimedia.includes('.mp4') || p.URL_Multimedia.includes('.webm') || p.URL_Multimedia.includes('.ogg')) {
                                     mediaHtml = `<video class="media-content" controls src="${p.URL_Multimedia}"></video>`;
                                 } else {
@@ -696,55 +819,36 @@
             }
         }
 
-        async function cargarEventosAdmin() {
-            const res = await fetch(`${API_URL}/eventos/`);
-            if (res.ok) {
-                const eventos = await res.json();
-                let html = '';
-                eventos.forEach(ev => {
-                    html += `
-                        <div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-                            <div><strong>${ev.Nombre_Evento}</strong> (${ev.Fecha_Inicio})</div>
-                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarEvento(${ev.ID_Evento})">Eliminar</button>
-                        </div>
-                    `;
-                });
-                document.getElementById('admin-lista-eventos').innerHTML = html || '<p>No hay eventos creados.</p>';
-            }
+        function abrirModalInscripcion(idEvento, nombreEvento) {
+            document.getElementById('modal-evento-id').value = idEvento;
+            document.getElementById('modal-evento-nombre').innerText = "Evento: " + nombreEvento;
+            document.getElementById('modal-comprobante').value = ""; 
+            document.getElementById('modal-inscripcion').style.display = 'flex';
         }
 
-        async function eliminarEvento(id) {
-            if (!confirm("¿Estás seguro de eliminar este evento?")) return;
-            const res = await fetch(`${API_URL}/admin/eventos/${id}`, { method: "DELETE" });
-            if (res.ok) {
-                alert("Evento eliminado.");
-                cargarEventosAdmin();
-            }
-        }
+        async function procesarInscripcion() {
+            const idEvento = document.getElementById('modal-evento-id').value;
+            const archivoInput = document.getElementById('modal-comprobante');
 
-        async function cargarPublicacionesAdmin() {
-            const res = await fetch(`${API_URL}/publicaciones/`);
-            if (res.ok) {
-                const pubs = await res.json();
-                let html = '';
-                pubs.forEach(p => {
-                    html += `
-                        <div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-                            <div><strong>${p.Titulo}</strong></div>
-                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarPublicacion(${p.ID_Publicacion})">Eliminar</button>
-                        </div>
-                    `;
-                });
-                document.getElementById('admin-lista-publicaciones').innerHTML = html || '<p>No hay contenido publicado.</p>';
-            }
-        }
+            if (!archivoInput.files[0]) return alert("Selecciona la foto de tu comprobante.");
+            if (!usuarioActualID) return alert("Error de sesión. Vuelve a iniciar sesión.");
 
-        async function eliminarPublicacion(id) {
-            if (!confirm("¿Estás seguro de eliminar este contenido del muro?")) return;
-            const res = await fetch(`${API_URL}/admin/publicaciones/${id}`, { method: "DELETE" });
-            if (res.ok) {
-                alert("Contenido eliminado con éxito.");
-                cargarPublicacionesAdmin(); 
+            const formData = new FormData();
+            formData.append("id_participante", usuarioActualID);
+            formData.append("id_evento", idEvento);
+            formData.append("comprobante", archivoInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_URL}/inscripciones/`, { method: "POST", body: formData });
+                if (res.ok) {
+                    alert("¡Comprobante enviado con éxito! La directiva validará tu pago pronto.");
+                    document.getElementById('modal-inscripcion').style.display = 'none';
+                } else {
+                    const errData = await res.json();
+                    alert("Error detallado al inscribir: " + JSON.stringify(errData.detail));
+                }
+            } catch (error) {
+                alert("Error de conexión al subir el comprobante.");
             }
         }
 
@@ -756,22 +860,11 @@
             const formData = new FormData();
             formData.append("archivo", file);
 
-            try {
-                const res = await fetch(`${API_URL}/participantes/${usuarioActualID}/foto`, {
-                    method: "POST",
-                    body: formData
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    document.getElementById('profile-pic-box').innerHTML = `<img src="${data.url_foto}" alt="Perfil">`;
-                    document.getElementById('btn-foto').innerText = "Cambiar foto de perfil";
-                    alert("¡Foto de perfil actualizada con éxito!");
-                } else {
-                    alert("Error al subir la foto.");
-                }
-            } catch (error) {
-                alert("Error de conexión con el servidor.");
+            const res = await fetch(`${API_URL}/participantes/${usuarioActualID}/foto`, { method: "POST", body: formData });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('profile-pic-box').innerHTML = `<img src="${data.url_foto}" alt="Perfil">`;
+                alert("¡Foto de perfil actualizada con éxito!");
             }
         }
 
@@ -786,155 +879,6 @@
             enlaceVirtual.click();
             document.body.removeChild(enlaceVirtual);
         }
-
-        function abrirModalInscripcion(idEvento, nombreEvento) {
-            document.getElementById('modal-evento-id').value = idEvento;
-            document.getElementById('modal-evento-nombre').innerText = "Evento: " + nombreEvento;
-            document.getElementById('modal-comprobante').value = ""; 
-            document.getElementById('modal-inscripcion').style.display = 'flex';
-        }
-
-        async function procesarInscripcion() {
-            const idEvento = document.getElementById('modal-evento-id').value;
-            const archivoInput = document.getElementById('modal-comprobante');
-
-            if (!archivoInput.files[0]) return alert("Por favor, selecciona la foto de tu comprobante.");
-            if (!usuarioActualID) return alert("Error de sesión. Vuelve a iniciar sesión.");
-
-            const formData = new FormData();
-            formData.append("id_participante", usuarioActualID);
-            formData.append("id_evento", idEvento);
-            formData.append("comprobante", archivoInput.files[0]);
-
-            try {
-                const res = await fetch(`${API_URL}/inscripciones/`, {
-                    method: "POST",
-                    body: formData
-                });
-
-                if (res.ok) {
-                    alert("¡Comprobante enviado con éxito! La directiva validará tu pago pronto.");
-                    document.getElementById('modal-inscripcion').style.display = 'none';
-                } else {
-                    const errData = await res.json();
-                    let mensajeError = "Revise los datos";
-                    if (errData.detail) {
-                        if (Array.isArray(errData.detail)) {
-                            mensajeError = errData.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(' | ');
-                        } else if (typeof errData.detail === 'object') {
-                            mensajeError = JSON.stringify(errData.detail);
-                        } else {
-                            mensajeError = errData.detail;
-                        }
-                    }
-                    alert("Error detallado al inscribir: " + mensajeError);
-                }
-            } catch (error) {
-                alert("Error de conexión al subir el comprobante.");
-            }
-        }
-
-        function cerrarSesion() {
-            document.getElementById('admin-view').classList.add('hidden');
-            document.getElementById('member-view').classList.add('hidden');
-            document.getElementById('auth-view').classList.remove('hidden');
-            document.getElementById('celebration-banner').classList.add('hidden');
-            document.getElementById('login-id').value = "";
-            document.getElementById('panel-admin-finanzas').style.display = 'none';
-            
-            // Limpiar la foto para que no se quede guardada visualmente para el siguiente usuario
-            document.getElementById('profile-pic-box').innerHTML = `<span style="font-size: 12px; color: #aaa;">Sin Foto</span>`;
-            document.getElementById('btn-foto').innerText = "Subir foto de perfil";
-            
-            usuarioActualID = null;
-        }
-        async function cargarEventosParaGastos() {
-            try {
-                const res = await fetch(`${API_URL}/eventos/`);
-                const eventos = await res.json();
-                const select = document.getElementById('gasto-id-evento');
-                select.innerHTML = '<option value="">Selecciona un Evento...</option>';
-                eventos.forEach(ev => {
-                    select.innerHTML += `<option value="${ev.ID_Evento}">${ev.Nombre_Evento}</option>`;
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        async function cargarPendientes() {
-            try {
-                const res = await fetch(`${API_URL}/admin/inscripciones/pendientes`);
-                if (!res.ok) throw new Error("Error del servidor");
-                
-                const datos = await res.json();
-                const contenedor = document.getElementById('lista-pendientes');
-                contenedor.innerHTML = "";
-                
-                if (datos.length === 0) {
-                    contenedor.innerHTML = "<p style='color: #aaa;'>No hay pagos pendientes de revisión.</p>";
-                    return;
-                }
-
-                datos.forEach(d => {
-                    contenedor.innerHTML += `
-                        <div style="border: 1px solid #444; padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; color: white;">
-                            <div>
-                                <strong>${d.Nombres}</strong> pagó $${d.Monto_Total} por <em style="color: var(--primary-orange);">${d.Nombre_Evento}</em><br>
-                                <a href="${d.Comprobante_URL}" target="_blank" style="color: #4da6ff; text-decoration: underline; display: inline-block; margin-top: 5px;">📄 Ver Comprobante Subido</a>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button class="btn" onclick="aprobarPago(${d.ID_Cuota})" style="background: #28a745; padding: 10px; color: white;">✅ Aprobar</button>
-                                <button class="btn btn-danger" onclick="rechazarPago(${d.ID_Cuota})" style="padding: 10px; color: white;">❌ Rechazar</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                alert("Error al cargar la lista. El servidor backend podría estar apagado.");
-            }
-        }
-
-        async function aprobarPago(idCuota) {
-            const res = await fetch(`${API_URL}/admin/inscripciones/${idCuota}/aprobar`, { method: 'POST' });
-            if(res.ok) {
-                alert("Pago aprobado. Dinero registrado.");
-                cargarPendientes(); 
-            }
-        }
-
-        async function rechazarPago(idCuota) {
-            if (!confirm("¿Estás seguro de rechazar este pago? La inscripción se anulará y el usuario tendrá que subir un nuevo comprobante.")) return;
-            
-            const res = await fetch(`${API_URL}/admin/inscripciones/${idCuota}/rechazar`, { method: 'DELETE' });
-            if(res.ok) {
-                alert("Inscripción anulada correctamente.");
-                cargarPendientes();
-            } else {
-                alert("Error al intentar anular la inscripción.");
-            }
-        }
-        
-        async function enviarGasto() {
-            const idEvento = document.getElementById('gasto-id-evento').value;
-            const categoria = document.getElementById('gasto-categoria').value;
-            const monto = document.getElementById('gasto-monto').value;
-            
-            if(!idEvento || !categoria || !monto) return alert("Llena todos los campos.");
-
-            const formData = new FormData();
-            formData.append("id_evento", idEvento);
-            formData.append("categoria", categoria);
-            formData.append("monto", monto);
-            
-            const res = await fetch(`${API_URL}/admin/gastos/`, { method: 'POST', body: formData });
-            if(res.ok) {
-                alert("Gasto descontado de la caja del evento.");
-                document.getElementById('gasto-categoria').value = "";
-                document.getElementById('gasto-monto').value = "";
-            }
-        }
-        
     </script>
 <!-- VENTANA EMERGENTE DE PAGO -->
     <div id="modal-inscripcion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;">
