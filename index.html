@@ -232,7 +232,34 @@
         </div>
     </div>
 
-    <!-- 3. VISTA DEL ADMINISTRADOR DE COMUNICACIÓN (NUEVO PANEL) -->
+    <!-- 3. VISTA TEMPORAL DE EVENTOS Y MULTIMEDIA (ADMIN999) -->
+    <div id="admin-view" class="container hidden">
+        <div class="nav-bar" style="border-bottom-color: var(--accent-red);">
+            <span>🛡️ Creador de Eventos y Multimedia (Comunicación)</span>
+            <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
+        </div>
+        <h3>Crear Evento con Publicidad</h3>
+        <div class="input-group"><label>Nombre del Evento</label><input type="text" id="admin-nombre-evento"></div>
+        <div class="input-group"><label>Tarifas o Precios</label><input type="text" id="admin-tarifas-evento"></div>
+        <div class="input-group"><label>Costo Base ($)</label><input type="number" id="admin-costo-evento" value="0.00"></div>
+        <div class="input-group"><label>Fecha Inicio</label><input type="date" id="admin-fecha-inicio"></div>
+        <div class="input-group"><label>Fecha Fin</label><input type="date" id="admin-fecha-fin"></div>
+        <div class="input-group"><label>Requisitos</label><textarea id="admin-requisitos-evento"></textarea></div>
+        <div class="input-group"><label>Imagen URL</label><input type="text" id="admin-imagen-evento"></div>
+        <button class="btn" onclick="publicarEvento()">Publicar Evento</button>
+        <hr style="border-color: #333; margin: 25px 0;">
+        <h3>📢 Compartir Contenido Multimedia</h3>
+        <div class="input-group"><label>Título</label><input type="text" id="admin-pub-titulo"></div>
+        <div class="input-group"><label>Descripción</label><textarea id="admin-pub-desc"></textarea></div>
+        <div class="input-group"><label>Subir Archivo</label><input type="file" id="admin-pub-archivo" accept="image/*,video/*"></div>
+        <button class="btn btn-blue" onclick="publicarContenido()">Compartir en el Muro</button>
+        <hr style="border-color: #333; margin: 25px 0;">
+        <h3>Eventos Activos</h3><div id="admin-lista-eventos"></div>
+        <hr style="border-color: #333; margin: 25px 0;">
+        <h3>Contenido Activo</h3><div id="admin-lista-publicaciones"></div>
+    </div>
+
+    <!-- 3.1 VISTA DEL ADMINISTRADOR DE COMUNICACIÓN (NUEVO PANEL) -->
     <div id="admin-comunicacion-view" class="container hidden">
         <div class="nav-bar" style="border-bottom-color: var(--accent-purple);">
             <span>📢 Panel Creativo - Comunicación</span>
@@ -253,15 +280,15 @@
         <div id="sec-crear-evento">
             <h3 style="color: var(--accent-purple);">Crear Evento y Formulario de Inscripción</h3>
             <div style="display: flex; gap: 10px;">
-                <div class="input-group" style="flex: 2;"><label>Nombre del Evento</label><input type="text" id="admin-nombre-evento"></div>
-                <div class="input-group" style="flex: 1;"><label>Costo Base ($)</label><input type="number" id="admin-costo-evento" value="0.00"></div>
+                <div class="input-group" style="flex: 2;"><label>Nombre del Evento</label><input type="text" id="admin-nombre-evento-com"></div>
+                <div class="input-group" style="flex: 1;"><label>Costo Base ($)</label><input type="number" id="admin-costo-evento-com" value="0.00"></div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <div class="input-group" style="flex: 1;"><label>Fecha Inicio</label><input type="date" id="admin-fecha-inicio"></div>
-                <div class="input-group" style="flex: 1;"><label>Fecha Fin</label><input type="date" id="admin-fecha-fin"></div>
+                <div class="input-group" style="flex: 1;"><label>Fecha Inicio</label><input type="date" id="admin-fecha-inicio-com"></div>
+                <div class="input-group" style="flex: 1;"><label>Fecha Fin</label><input type="date" id="admin-fecha-fin-com"></div>
             </div>
-            <div class="input-group"><label>Tarifas o Precios Alternativos</label><input type="text" id="admin-tarifas-evento" placeholder="Ej. General: $5.00 | VIP: $10.00"></div>
-            <div class="input-group"><label>Requisitos</label><textarea id="admin-requisitos-evento" placeholder="Ej. Llevar sleeping bag, Biblia..."></textarea></div>
+            <div class="input-group"><label>Tarifas o Precios Alternativos</label><input type="text" id="admin-tarifas-evento-com" placeholder="Ej. General: $5.00 | VIP: $10.00"></div>
+            <div class="input-group"><label>Requisitos</label><textarea id="admin-requisitos-evento-com" placeholder="Ej. Llevar sleeping bag, Biblia..."></textarea></div>
             
             <!-- NUEVO SELECTOR MULTIMEDIA PARA EVENTOS -->
             <div style="background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px;">
@@ -273,12 +300,12 @@
 
                 <div id="caja-subir-local-evento" class="input-group">
                     <label style="color: #aaa; font-size: 13px;">Selecciona un archivo (Máx 15MB recomendado):</label>
-                    <input type="file" id="admin-evento-archivo" accept="image/*,video/*">
+                    <input type="file" id="admin-evento-archivo-com" accept="image/*,video/*">
                 </div>
                 
                 <div id="caja-subir-externo-evento" class="input-group hidden">
                     <label style="color: #aaa; font-size: 13px;">Pega el enlace de YouTube o Drive:</label>
-                    <input type="text" id="admin-evento-enlace" placeholder="https://www.youtube.com/watch?v=...">
+                    <input type="text" id="admin-evento-enlace-com" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
             </div>
             <!-- FIN NUEVO SELECTOR -->
@@ -296,8 +323,8 @@
         <!-- SECCIÓN: SUBIR CONTENIDO (ESTILO INSTAGRAM/YOUTUBE) -->
         <div id="sec-crear-post" class="hidden">
             <h3 style="color: var(--accent-purple);">📢 Compartir Contenido Multimedia</h3>
-            <div class="input-group"><label>Título de la Publicación</label><input type="text" id="admin-pub-titulo"></div>
-            <div class="input-group"><label>Descripción / Historia</label><textarea id="admin-pub-desc" style="height: 100px;"></textarea></div>
+            <div class="input-group"><label>Título de la Publicación</label><input type="text" id="admin-pub-titulo-com"></div>
+            <div class="input-group"><label>Descripción / Historia</label><textarea id="admin-pub-desc-com" style="height: 100px;"></textarea></div>
             
             <div style="background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444;">
                 <label style="color: var(--primary-orange); font-weight: bold; margin-bottom: 10px; display: block;">Tipo de Archivo Multimedia</label>
@@ -307,13 +334,13 @@
                 </select>
 
                 <div id="caja-subir-local" class="input-group">
-                    <label style="color: #aaa; font-size: 13px;">Selecciona un archivo de tu PC o Celular (Máx 15MB recomendado):</label>
-                    <input type="file" id="admin-pub-archivo" accept="image/*,video/*">
+                    <label style="color: #aaa; font-size: 13px;">Selecciona un archivo de tu PC o Celular (Máx 15MB):</label>
+                    <input type="file" id="admin-pub-archivo-com" accept="image/*,video/*">
                 </div>
                 
                 <div id="caja-subir-externo" class="input-group hidden">
                     <label style="color: #aaa; font-size: 13px;">Pega el enlace de YouTube o Drive para incrustar el video:</label>
-                    <input type="text" id="admin-pub-enlace" placeholder="https://www.youtube.com/watch?v=...">
+                    <input type="text" id="admin-pub-enlace-com" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
             </div>
 
@@ -470,11 +497,11 @@
             if (selector === 'local') {
                 document.getElementById('caja-subir-local-evento').classList.remove('hidden');
                 document.getElementById('caja-subir-externo-evento').classList.add('hidden');
-                document.getElementById('admin-evento-enlace').value = "";
+                document.getElementById('admin-evento-enlace-com').value = "";
             } else {
                 document.getElementById('caja-subir-local-evento').classList.add('hidden');
                 document.getElementById('caja-subir-externo-evento').classList.remove('hidden');
-                document.getElementById('admin-evento-archivo').value = "";
+                document.getElementById('admin-evento-archivo-com').value = "";
             }
         }
 
@@ -483,11 +510,11 @@
             if (selector === 'local') {
                 document.getElementById('caja-subir-local').classList.remove('hidden');
                 document.getElementById('caja-subir-externo').classList.add('hidden');
-                document.getElementById('admin-pub-enlace').value = "";
+                document.getElementById('admin-pub-enlace-com').value = "";
             } else {
                 document.getElementById('caja-subir-local').classList.add('hidden');
                 document.getElementById('caja-subir-externo').classList.remove('hidden');
-                document.getElementById('admin-pub-archivo').value = "";
+                document.getElementById('admin-pub-archivo-com').value = "";
             }
         }
 
@@ -883,38 +910,42 @@
         }
 
         async function publicarEvento() {
-            const nombre = document.getElementById('admin-nombre-evento').value.trim();
-            const fecha_inicio_val = document.getElementById('admin-fecha-inicio').value;
+            const nombre = document.getElementById('admin-nombre-evento-com').value.trim();
+            const fecha_inicio_val = document.getElementById('admin-fecha-inicio-com').value;
             if (!nombre || !fecha_inicio_val) return alert("El nombre y la fecha de inicio son obligatorios.");
 
             const formData = new FormData();
             formData.append("nombre_evento", nombre);
-            formData.append("costo", parseFloat(document.getElementById('admin-costo-evento').value) || 0.0);
-            formData.append("tarifas", document.getElementById('admin-tarifas-evento').value.trim() || "General");
+            formData.append("costo", parseFloat(document.getElementById('admin-costo-evento-com').value) || 0.0);
+            formData.append("tarifas", document.getElementById('admin-tarifas-evento-com').value.trim() || "General");
             formData.append("fecha_inicio", fecha_inicio_val.includes('T') ? fecha_inicio_val : `${fecha_inicio_val}T00:00:00`);
             
-            const fecha_fin_val = document.getElementById('admin-fecha-fin').value;
+            const fecha_fin_val = document.getElementById('admin-fecha-fin-com').value;
             formData.append("fecha_fin", fecha_fin_val ? (fecha_fin_val.includes('T') ? fecha_fin_val : `${fecha_fin_val}T00:00:00`) : "");
             
-            formData.append("requisitos", document.getElementById('admin-requisitos-evento').value || "Ninguno");
+            formData.append("requisitos", document.getElementById('admin-requisitos-evento-com').value || "Ninguno");
             formData.append("formulario_json", recopilarFormularioJSON());
-            formData.append("enlace_externo", document.getElementById('admin-evento-enlace').value.trim());
+            formData.append("enlace_externo", document.getElementById('admin-evento-enlace-com').value.trim());
             formData.append("admin_id", usuarioActualID);
             formData.append("admin_nombres", usuarioActualNombres);
 
-            const archivoInput = document.getElementById('admin-evento-archivo');
+            const archivoInput = document.getElementById('admin-evento-archivo-com');
+            // NUEVA VALIDACIÓN: Limitar a 15 MB (15 * 1024 * 1024 bytes)
+            if (archivoInput.files[0] && archivoInput.files[0].size > 15728640) {
+                return alert("⚠️ El archivo es demasiado pesado. El límite máximo es 15 MB.");
+            }
             if (archivoInput.files[0]) formData.append("archivo", archivoInput.files[0]);
 
             const res = await fetch(`${API_URL}/admin/eventos/`, { method: "POST", body: formData });
             if (res.ok) { 
                 alert("¡Evento y Formulario publicados con éxito!"); 
-                document.getElementById('admin-nombre-evento').value = "";
-                document.getElementById('admin-tarifas-evento').value = "";
-                document.getElementById('admin-costo-evento').value = "0.00";
-                document.getElementById('admin-fecha-inicio').value = "";
-                document.getElementById('admin-fecha-fin').value = "";
-                document.getElementById('admin-requisitos-evento').value = "";
-                document.getElementById('admin-evento-enlace').value = "";
+                document.getElementById('admin-nombre-evento-com').value = "";
+                document.getElementById('admin-tarifas-evento-com').value = "";
+                document.getElementById('admin-costo-evento-com').value = "0.00";
+                document.getElementById('admin-fecha-inicio-com').value = "";
+                document.getElementById('admin-fecha-fin-com').value = "";
+                document.getElementById('admin-requisitos-evento-com').value = "";
+                document.getElementById('admin-evento-enlace-com').value = "";
                 if(archivoInput) archivoInput.value = "";
                 document.getElementById('contenedor-preguntas-dinamicas').innerHTML = "";
                 cargarEventosAdmin(); 
@@ -922,10 +953,15 @@
         }
 
         async function publicarContenido() {
-            const titulo = document.getElementById('admin-pub-titulo').value.trim();
-            const descripcion = document.getElementById('admin-pub-desc').value.trim();
-            const enlaceExterno = document.getElementById('admin-pub-enlace').value.trim();
-            const archivoInput = document.getElementById('admin-pub-archivo');
+            const titulo = document.getElementById('admin-pub-titulo-com').value.trim();
+            const descripcion = document.getElementById('admin-pub-desc-com').value.trim();
+            const enlaceExterno = document.getElementById('admin-pub-enlace-com').value.trim();
+            const archivoInput = document.getElementById('admin-pub-archivo-com');
+
+            // NUEVA VALIDACIÓN: Limitar a 15 MB
+            if (archivoInput.files[0] && archivoInput.files[0].size > 15728640) {
+                return alert("⚠️ El archivo multimedia supera los 15 MB. Súbelo a YouTube/Drive y pega el enlace externo.");
+            }
 
             if (!titulo || !descripcion) return alert("Título y descripción son obligatorios.");
 
@@ -941,9 +977,9 @@
             const res = await fetch(`${API_URL}/admin/publicaciones/`, { method: "POST", body: formData });
             if (res.ok) { 
                 alert("Contenido multimedia compartido en el muro."); 
-                document.getElementById('admin-pub-titulo').value = "";
-                document.getElementById('admin-pub-desc').value = "";
-                document.getElementById('admin-pub-enlace').value = "";
+                document.getElementById('admin-pub-titulo-com').value = "";
+                document.getElementById('admin-pub-desc-com').value = "";
+                document.getElementById('admin-pub-enlace-com').value = "";
                 archivoInput.value = "";
                 cargarPublicacionesAdmin(); 
             } else alert("Error al publicar contenido.");
@@ -1089,6 +1125,11 @@
         async function procesarInscripcion() {
             const archivoInput = document.getElementById('modal-comprobante');
             if (!archivoInput.files[0]) return alert("Falta el comprobante de pago.");
+            
+            // NUEVA VALIDACIÓN: Limitar a 5 MB (5 * 1024 * 1024 bytes)
+            if (archivoInput.files[0].size > 5242880) {
+                return alert("⚠️ La foto del comprobante es muy pesada. Máximo 5 MB.");
+            }
 
             const respuestas = {};
             let formularioValido = true;
@@ -1117,9 +1158,23 @@
         }
 
         async function subirFotoPerfil(event) {
-            const formData = new FormData(); formData.append("archivo", event.target.files[0]);
+            const archivo = event.target.files[0];
+            if (!archivo) return;
+            
+            // NUEVA VALIDACIÓN: Limitar a 5 MB
+            if (archivo.size > 5242880) {
+                return alert("⚠️ La foto de perfil es demasiado pesada. El límite es 5 MB.");
+            }
+
+            const formData = new FormData(); 
+            formData.append("archivo", archivo);
             const res = await fetch(`${API_URL}/participantes/${usuarioActualID}/foto`, { method: "POST", body: formData });
-            if (res.ok) { const data = await res.json(); document.getElementById('profile-pic-box').innerHTML = `<img src="${data.url_foto}">`; alert("Foto actualizada!"); }
+            
+            if (res.ok) { 
+                const data = await res.json(); 
+                document.getElementById('profile-pic-box').innerHTML = `<img src="${data.url_foto}">`; 
+                alert("Foto actualizada!"); 
+            }
         }
 
         function descargarQR() {

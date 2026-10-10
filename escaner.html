@@ -2,48 +2,184 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Escáner Asistencia GENCANA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escáner Logístico GENCANA</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: Arial; text-align: center; margin-top: 30px; background: #f9f9f9; }
-        #reader { width: 100%; max-width: 400px; margin: 0 auto; }
-        .alternativa { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }
-        input, button { padding: 10px; margin: 5px; font-size: 16px; }
-        #lista-inscritos-container { max-width: 500px; margin: 30px auto; text-align: left; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: none; }
-        #lista-inscritos li { padding: 12px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #ccc; font-weight: bold; display: flex; justify-content: space-between; }
-        .pendiente { background: #fff3cd; color: #856404; border-color: #ffeeba !important; }
-        .confirmado { background: #d4edda; color: #155724; border-color: #c3e6cb !important; }
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --primary-orange: #ff6f00;
+            --accent-red: #d32f2f;
+            --accent-blue: #2979ff;
+            --text-light: #e0e0e0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-light);
+            margin: 0; 
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 500px; 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5); 
+            border: 1px solid #333;
+            padding: 25px;
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+
+        .branding-title {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-orange), var(--accent-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; color: var(--primary-orange); font-weight: 600; text-align: center; }
+        .input-group select, .input-group input { 
+            width: 100%; 
+            padding: 12px; 
+            box-sizing: border-box; 
+            background: #2a2a2a; 
+            border: 1px solid #444; 
+            color: white;
+            border-radius: 6px; 
+            font-size: 16px;
+        }
+
+        .btn { 
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-red)); 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: opacity 0.2s;
+            width: 100%;
+            font-size: 16px;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        /* =========================================
+           FORZAR ESTILOS OSCUROS AL ESCÁNER QR
+           ========================================= */
+        #reader {
+            border: 1px solid #444 !important;
+            border-radius: 8px !important;
+            background: #242424 !important;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        #reader button {
+            background: var(--accent-blue) !important;
+            color: white !important;
+            border: none !important;
+            padding: 10px 15px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-weight: bold !important;
+            margin: 10px 5px !important;
+        }
+
+        #reader select {
+            background: #1e1e1e !important;
+            color: white !important;
+            border: 1px solid #555 !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+            margin-bottom: 10px !important;
+        }
+
+        #reader a { color: var(--primary-orange) !important; text-decoration: none !important; }
+        #reader span { color: #aaa !important; }
+        
+        hr { border-color: #333; margin: 25px 0; }
+
+        /* =========================================
+           LISTA DE ASISTENCIA DINÁMICA
+           ========================================= */
+        #lista-inscritos-container { 
+            display: none; 
+            margin-top: 25px;
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        #lista-inscritos { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
+        #lista-inscritos li { 
+            padding: 12px; 
+            margin-bottom: 8px; 
+            border-radius: 5px; 
+            border: 1px solid #444; 
+            font-weight: bold; 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 14px;
+        }
+        .pendiente { background: #2f2514; color: #ffd700; border-color: #554400 !important; }
+        .confirmado { background: #142f1b; color: #4ade80; border-color: #1e4a28 !important; }
+        
+        #resultado { text-align: center; margin-top: 15px; font-size: 16px; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>Control Logístico GENCANA</h2>
-    
-    <div style="margin-bottom: 20px;">
-        <label><strong>Seleccione el Evento Actual:</strong></label><br>
-        <select id="select-evento-escaner" style="padding: 10px; margin-top: 5px; width: 80%; max-width: 300px;" onchange="cargarInscritos()">
-            <option value="">Cargando eventos...</option>
-        </select>
-    </div>
 
-    <div id="reader"></div>
+    <div class="container">
+        <h1 class="branding-title">Control Logístico GENCANA</h1>
 
-    <div class="alternativa">
-        <p>¿Sin código QR? Ingresa la cédula o código:</p>
-        <input type="text" id="cedulaInput" placeholder="Ej: gnc300">
-        <button onclick="registrarManual()">Registrar</button>
-    </div>
-    
-    <h3 id="resultado"></h3>
+        <div class="input-group">
+            <label>Seleccione el Evento Actual:</label>
+            <select id="select-evento-escaner" onchange="cargarInscritos()">
+                <option value="">Cargando eventos...</option>
+            </select>
+        </div>
 
-    <!-- Contenedor dinámico de la lista de inscritos -->
-    <div id="lista-inscritos-container">
-        <h3 style="margin-top: 0;">Lista de Inscritos</h3>
-        <ul id="lista-inscritos" style="list-style: none; padding: 0;"></ul>
+        <!-- Caja del Escáner -->
+        <div id="reader" width="100%"></div>
+
+        <hr>
+
+        <div class="input-group">
+            <label style="color: #aaa; font-size: 14px;">¿Sin código QR? Ingresa la cédula o código:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="cedulaInput" placeholder="Ej: gnc300" style="flex: 2;">
+                <button class="btn" style="flex: 1;" onclick="registrarManual()">Registrar</button>
+            </div>
+        </div>
+
+        <div id="resultado"></div>
+
+        <!-- Contenedor dinámico de la lista de inscritos -->
+        <div id="lista-inscritos-container">
+            <h3 style="color: white; margin-top: 0; text-align: center;">Lista de Inscritos</h3>
+            <ul id="lista-inscritos"></ul>
+        </div>
     </div>
 
     <script>
         const API_URL = "https://gencana-sistema-production.up.railway.app";
+        let isRequesting = false; // Bloqueo para evitar doble escaneo rápido
 
+        // 1. Cargar Eventos Activos al iniciar
         async function cargarEventosEscaner() {
             try {
                 const res = await fetch(`${API_URL}/eventos/`);
@@ -57,21 +193,22 @@
                 eventos.forEach(ev => {
                     const option = document.createElement('option');
                     option.value = ev.ID_Evento;
-                    option.textContent = ev.Nombre_Evento;
+                    option.textContent = `${ev.Nombre_Evento} (${ev.Fecha_Inicio})`;
                     select.appendChild(option);
                 });
             } catch (error) {
                 console.error("Error cargando los eventos:", error);
-                document.getElementById("resultado").innerText = "❌ Error cargando los eventos.";
+                document.getElementById("resultado").innerHTML = "<span style='color: var(--accent-red);'>❌ Error cargando los eventos.</span>";
             }
         }
         window.onload = cargarEventosEscaner;
 
-        // Función para cargar los inscritos del evento seleccionado
+        // 2. Cargar Inscritos Dinámicos
         async function cargarInscritos() {
             const idEvento = document.getElementById('select-evento-escaner').value;
             const container = document.getElementById('lista-inscritos-container');
             const lista = document.getElementById('lista-inscritos');
+            document.getElementById("resultado").innerText = ""; // Limpiar mensajes
 
             if (!idEvento) {
                 container.style.display = 'none';
@@ -87,31 +224,32 @@
                 lista.innerHTML = "";
 
                 if (inscritos.length === 0) {
-                    lista.innerHTML = "<li style='background:#f4f4f4; text-align:center;'>No hay inscritos en este evento.</li>";
+                    lista.innerHTML = "<li style='background:#1e1e1e; border:none; text-align:center; color:#aaa; justify-content:center;'>Nadie ha pagado su inscripción aún.</li>";
                     return;
                 }
 
                 inscritos.forEach(p => {
-                    console.log("Datos de la persona:", p);
                     const li = document.createElement('li');
                     li.id = `participante-${p.ID_Participante}`;
                     
-                    // Agregamos p.Asistio para que coincida exactamente con lo que envía el backend
                     const asisitido = p.Asistio === 1 || p.Asistencia === 1 || p.estado === 'Confirmado';
                     li.className = asisitido ? 'confirmado' : 'pendiente';
                     
                     const icono = asisitido ? '✅' : '⏳';
-                    // Cambiamos Cedula por Numero_Identificacion, que es el nombre real de tu columna en la base de datos
                     li.innerHTML = `<span>${p.Nombres || p.nombre} (${p.Numero_Identificacion || p.numero_identificacion || p.Cedula})</span> <span>${icono}</span>`;
                     lista.appendChild(li);
                 });
             } catch (error) {
-                console.error("Error al cargar inscritos:", error);
-                lista.innerHTML = "<li style='color:red;'>Error al cargar la lista de participantes.</li>";
+                lista.innerHTML = "<li style='color:var(--accent-red); border:none; justify-content:center;'>Error de red al cargar la lista.</li>";
             }
         }
 
+        // 3. Procesar Asistencia (Backend)
         async function enviarAsistencia(payload) {
+            if (isRequesting) return;
+            isRequesting = true;
+            const resultadoUI = document.getElementById("resultado");
+
             try {
                 const response = await fetch(`${API_URL}/asistencia/`, {
                     method: "POST",
@@ -120,52 +258,55 @@
                 });
                 const data = await response.json();
                 
-                const resultadoUI = document.getElementById("resultado");
-                
                 if (response.ok) {
-                    resultadoUI.innerHTML = `<span style="color: green;">✅ ${data.mensaje}</span>`;
-                    
-                    // Buscamos la fila tomando en cuenta las mayúsculas de tu base de datos
-                    const idConfirmado = data.ID_Participante || data.id_participante;
-                    const fila = document.getElementById(`participante-${idConfirmado}`);
-                    
-                    if (fila) {
-                        fila.className = 'confirmado';
-                        fila.innerHTML = fila.innerHTML.replace('⏳', '✅');
-                    }
-                    
-                    // Respaldo infalible: actualizamos la lista en vivo desde la base de datos
-                    cargarInscritos();
+                    resultadoUI.innerHTML = `<span style="color: #4ade80;">✅ ${data.mensaje}</span>`;
+                    document.getElementById('cedulaInput').value = "";
+                    cargarInscritos(); // Refrescar lista en vivo
                 } else {
-                    // Mostrar los mensajes de error exactos del backend (ya confirmó, no inscrito, etc.)
-                    resultadoUI.innerHTML = `<span style="color: red;">${data.detail}</span>`;
+                    resultadoUI.innerHTML = `<span style="color: var(--accent-red);">⚠️ ${data.detail}</span>`;
                 }
             } catch (error) {
-                document.getElementById("resultado").innerText = "❌ Error de conexión al servidor.";
+                resultadoUI.innerHTML = "<span style='color: var(--accent-red);'>❌ Error de conexión al servidor.</span>";
+            } finally {
+                setTimeout(() => { isRequesting = false; }, 2000); // Evitar escaneos dobles
             }
         }
 
+        // 4. Captura del QR (Automático)
         function onScanSuccess(decodedText) {
             const idEvento = document.getElementById('select-evento-escaner').value;
-            if (!idEvento) return alert("¡Seleccione un evento primero!");
+            if (!idEvento) {
+                if(!isRequesting) {
+                    alert("⚠️ Primero debes seleccionar un evento en la parte superior.");
+                    isRequesting = true; setTimeout(() => { isRequesting = false; }, 3000);
+                }
+                return;
+            }
             
-            document.getElementById("resultado").innerText = "⏳ Verificando QR...";
+            document.getElementById("resultado").innerHTML = "<span style='color: #ffd700;'>⏳ Verificando QR...</span>";
             enviarAsistencia({ evento_id: parseInt(idEvento), qr_data: decodedText });
         }
 
-        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-        html5QrcodeScanner.render(onScanSuccess);
+        function onScanFailure(error) {
+            // Ignoramos silenciosamente los fallos de lectura continuos de la cámara
+        }
 
+        // 5. Captura Manual (Botón)
         function registrarManual() {
             const idEvento = document.getElementById('select-evento-escaner').value;
             if (!idEvento) return alert("¡Seleccione un evento primero!");
             
-            const cedula = document.getElementById("cedulaInput").value;
-            if(!cedula) return alert("Ingresa un número válido");
+            const cedula = document.getElementById("cedulaInput").value.trim();
+            if(!cedula) return alert("Ingresa un número o código GENCANA.");
             
-            document.getElementById("resultado").innerText = "⏳ Verificando código...";
+            document.getElementById("resultado").innerHTML = "<span style='color: #ffd700;'>⏳ Verificando código...</span>";
             enviarAsistencia({ evento_id: parseInt(idEvento), numero_identificacion: cedula });
         }
+
+        // Inicializar el escáner
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
     </script>
 </body>
 </html>
