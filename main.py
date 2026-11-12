@@ -10,7 +10,10 @@ import qrcode
 import mysql.connector
 import os
 
+# Asegurar carpetas base
 os.makedirs("uploads", exist_ok=True)
+os.makedirs("uploads/perfiles", exist_ok=True)
+os.makedirs("uploads/comprobantes", exist_ok=True)
 os.makedirs("qrcodes", exist_ok=True)
 
 app = FastAPI(title="GENCANA Web System API")
@@ -57,8 +60,10 @@ def registrar_auditoria(id_usuario, nombres, accion, detalle):
     try:
         fecha_ecuador = datetime.utcnow() - timedelta(hours=5)
         fecha_formateada = fecha_ecuador.strftime('%Y-%m-%d %H:%M:%S')
-        cursor.execute("INSERT INTO Auditoria (ID_Usuario, Nombres_Usuario, Accion, Detalle, Fecha) VALUES (%s, %s, %s, %s, %s)",
-                       (id_usuario, nombres, accion, detalle, fecha_formateada))
+        cursor.execute(
+            "INSERT INTO Auditoria (ID_Usuario, Nombres_Usuario, Accion, Detalle, Fecha) VALUES (%s, %s, %s, %s, %s)",
+            (id_usuario, nombres, accion, detalle, fecha_formateada)
+        )
         db.commit()
     except Exception as e:
         print("Error en auditoría:", e)
@@ -119,13 +124,20 @@ def buscar_participante(numero_id: str):
     try:
         cursor.execute("SELECT ID_Participante, Nombres, Fecha_Nacimiento, Fecha_Ingreso, Foto_URL, Rol, Apostolado, Nivel_Acceso FROM Participantes WHERE Numero_Identificacion = %s", (numero_id,))
         resultado = cursor.fetchone()
-        if not resultado: raise HTTPException(status_code=404, detail="Participante no encontrado")
+        if not resultado: 
+            raise HTTPException(status_code=404, detail="Participante no encontrado")
             
         id_participante, nombres, fecha_nacimiento, fecha_ingreso, foto_url, rol, apostolado, nivel_acceso = resultado
         hoy = datetime.now().date()
         return {
-            "id_participante": id_participante, "nombres": nombres, "es_cumpleanos": (fecha_nacimiento.month == hoy.month and fecha_nacimiento.day == hoy.day),
-            "es_aniversario": (fecha_ingreso.month == hoy.month and fecha_ingreso.day == hoy.day), "foto_url": foto_url, "rol": rol, "apostolado": apostolado, "nivel_acceso": nivel_acceso or "Estándar"
+            "id_participante": id_participante, 
+            "nombres": nombres, 
+            "es_cumpleanos": (fecha_nacimiento.month == hoy.month and fecha_nacimiento.day == hoy.day) if fecha_nacimiento else False,
+            "es_aniversario": (fecha_ingreso.month == hoy.month and fecha_ingreso.day == hoy.day) if fecha_ingreso else False, 
+            "foto_url": foto_url, 
+            "rol": rol, 
+            "apostolado": apostolado, 
+            "nivel_acceso": nivel_acceso or "Estándar"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -146,10 +158,10 @@ def actualizar_foto(participante_id: int, archivo: UploadFile = File(...)):
     db = get_db()
     cursor = db.cursor()
     try:
-        os.makedirs("uploads/perfiles", exist_ok=True)
         nombre_archivo = f"perfil_{participante_id}_{int(time.time())}_{archivo.filename}"
         ruta_guardado = f"uploads/perfiles/{nombre_archivo}"
-        with open(ruta_guardado, "wb") as buffer: shutil.copyfileobj(archivo.file, buffer)
+        with open(ruta_guardado, "wb") as buffer: 
+            shutil.copyfileobj(archivo.file, buffer)
             
         url_foto = f"https://gencana-sistema-production.up.railway.app/uploads/perfiles/{nombre_archivo}"
         cursor.execute("UPDATE Participantes SET Foto_URL = %s WHERE ID_Participante = %s", (url_foto, participante_id))
@@ -214,8 +226,6 @@ def crear_evento(
     tipo_evento = "General" 
     
     if archivo and archivo.filename:
-        os.makedirs("uploads", exist_ok=True)
-        # Acorta el nombre del archivo para que no rompa el límite de caracteres de la DB
         extension = archivo.filename.split('.')[-1] if '.' in archivo.filename else 'jpg'
         nombre_unico = f"ev_{int(time.time())}.{extension}"
         ruta_guardado = f"uploads/{nombre_unico}"
@@ -225,7 +235,6 @@ def crear_evento(
     elif enlace_externo:
         tipo_evento = enlace_externo
 
-    # Limpia la 'T' de la fecha (si viene del frontend) para que MySQL no la rechace
     fecha_inicio_db = fecha_inicio.split('T')[0] if fecha_inicio else None
     fecha_fin_db = fecha_fin.split('T')[0] if fecha_fin and fecha_fin.strip() != "" else None
 
@@ -256,6 +265,33 @@ def listar_eventos():
         cursor.close()
         db.close()
 
+@app.get("/eventos/{id_evento}/inscritos")
+def listar_inscritos_evento(id_evento: int):
+    """Obtiene la lista de personas inscritas a un evento y su estado de asistencia."""
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT 
+                p.ID_Participante,
+                p.Nombres,
+                p.Numero_Identificacion,
+                c.Estado,
+                CASE WHEN a.ID_Asistencia IS NOT NULL THEN 1 ELSE 0 END AS Asistio
+            FROM Cuotas_Participantes c
+            JOIN Participantes p ON c.ID_Participante = p.ID_Participante
+            LEFT JOIN Asistencia a ON a.ID_Participante = p.ID_Participante AND a.ID_Evento = c.ID_Evento
+            WHERE c.ID_Evento = %s
+            ORDER BY p.Nombres ASC
+        """
+        cursor.execute(query, (id_evento,))
+        return cursor.fetchall()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        db.close()
+
 @app.delete("/admin/eventos/{evento_id}")
 def eliminar_evento(evento_id: int, admin_id: int, admin_nombres: str):
     db = get_db()
@@ -265,7 +301,8 @@ def eliminar_evento(evento_id: int, admin_id: int, admin_nombres: str):
         ev = cursor.fetchone()
         cursor.execute("DELETE FROM Eventos WHERE ID_Evento = %s", (evento_id,))
         db.commit()
-        if ev: registrar_auditoria(admin_id, admin_nombres, "Eliminación de Evento", f"Eliminó el evento '{ev[0]}'.")
+        if ev: 
+            registrar_auditoria(admin_id, admin_nombres, "Eliminación de Evento", f"Eliminó el evento '{ev[0]}'.")
         return {"mensaje": "Evento eliminado correctamente"}
     except Exception as e:
         db.rollback()
@@ -287,11 +324,11 @@ def crear_publicacion(
     tipo = "texto"
 
     if archivo and archivo.filename:
-        # También acortamos el nombre de las publicaciones por seguridad
         extension = archivo.filename.split('.')[-1] if '.' in archivo.filename else 'jpg'
         nombre_unico = f"pub_{int(time.time())}.{extension}"
         ruta_guardado = f"uploads/{nombre_unico}"
-        with open(ruta_guardado, "wb") as buffer: shutil.copyfileobj(archivo.file, buffer)
+        with open(ruta_guardado, "wb") as buffer: 
+            shutil.copyfileobj(archivo.file, buffer)
         url_multimedia = f"https://gencana-sistema-production.up.railway.app/uploads/{nombre_unico}"
         tipo = "multimedia_local"
     elif enlace_externo:
@@ -345,19 +382,26 @@ def registrar_asistencia(datos: AsistenciaScan):
     db = get_db()
     cursor = db.cursor(buffered=True) 
     try:
-        if datos.qr_data: cursor.execute("SELECT ID_Participante, Nombres FROM Participantes WHERE Codigo_QR = %s", (datos.qr_data,))
-        elif datos.numero_identificacion: cursor.execute("SELECT ID_Participante, Nombres FROM Participantes WHERE Numero_Identificacion = %s", (datos.numero_identificacion,))
-        else: raise HTTPException(status_code=400, detail="Envíe QR o Cédula")
+        if datos.qr_data: 
+            cursor.execute("SELECT ID_Participante, Nombres FROM Participantes WHERE Codigo_QR = %s", (datos.qr_data,))
+        elif datos.numero_identificacion: 
+            cursor.execute("SELECT ID_Participante, Nombres FROM Participantes WHERE Numero_Identificacion = %s", (datos.numero_identificacion,))
+        else: 
+            raise HTTPException(status_code=400, detail="Envíe QR o Cédula/Código GENCANA.")
 
         resultado = cursor.fetchone()
-        if not resultado: raise HTTPException(status_code=404, detail="Participante no encontrado.")
+        if not resultado: 
+            raise HTTPException(status_code=404, detail="Participante no encontrado.")
+        
         id_participante, nombre = resultado[0], resultado[1]
 
         cursor.execute("SELECT ID_Cuota FROM Cuotas_Participantes WHERE ID_Participante = %s AND ID_Evento = %s", (id_participante, datos.evento_id))
-        if not cursor.fetchone(): raise HTTPException(status_code=403, detail=f"❌ {nombre} no está inscrito.")
+        if not cursor.fetchone(): 
+            raise HTTPException(status_code=403, detail=f"❌ {nombre} no está inscrito en este evento.")
 
         cursor.execute("SELECT ID_Asistencia FROM Asistencia WHERE ID_Participante = %s AND ID_Evento = %s", (id_participante, datos.evento_id))
-        if cursor.fetchone(): raise HTTPException(status_code=400, detail=f"⚠️ Asistencia ya confirmada para {nombre}.")
+        if cursor.fetchone(): 
+            raise HTTPException(status_code=400, detail=f"⚠️ Asistencia ya confirmada para {nombre}.")
 
         cursor.execute("INSERT INTO Asistencia (ID_Participante, ID_Evento, Confirmacion_Asistencia) VALUES (%s, %s, %s)", (id_participante, datos.evento_id, True))
         db.commit()
@@ -379,19 +423,20 @@ def inscribirse_evento(
     cursor = db.cursor()
     cursor.execute("SELECT ID_Cuota FROM Cuotas_Participantes WHERE ID_Participante = %s AND ID_Evento = %s", (id_participante, id_evento))
     if cursor.fetchone():
-        cursor.close(); db.close()
+        cursor.close()
+        db.close()
         raise HTTPException(status_code=400, detail="Ya te encuentras inscrito en este evento.")
         
     nombre_archivo = f"{int(time.time())}_{comprobante.filename}"
     
-    # Se crea la carpeta para evitar que colapse la inscripción
-    os.makedirs("uploads/comprobantes", exist_ok=True)
-    
-    with open(f"uploads/comprobantes/{nombre_archivo}", "wb") as buffer: shutil.copyfileobj(comprobante.file, buffer)
+    with open(f"uploads/comprobantes/{nombre_archivo}", "wb") as buffer: 
+        shutil.copyfileobj(comprobante.file, buffer)
+        
     url_comprobante = f"https://gencana-sistema-production.up.railway.app/uploads/comprobantes/{nombre_archivo}"
     
     cursor.execute("SELECT Costo FROM Eventos WHERE ID_Evento = %s", (id_evento,))
-    costo = cursor.fetchone()[0]
+    costo_res = cursor.fetchone()
+    costo = costo_res[0] if costo_res else 0.0
 
     try:
         cursor.execute("INSERT INTO Cuotas_Participantes (ID_Participante, ID_Evento, Monto_Total, Abono, Saldo_Pendiente, Estado, Comprobante_URL) VALUES (%s, %s, %s, %s, %s, 'Pendiente', %s)", (id_participante, id_evento, costo, 0, costo, url_comprobante))
@@ -419,7 +464,8 @@ def obtener_pendientes():
         WHERE c.Estado = 'Pendiente' OR c.Estado = 'Deuda'
     """)
     res = cursor.fetchall()
-    cursor.close(); db.close()
+    cursor.close()
+    db.close()
     return res
 
 @app.post("/admin/inscripciones/{id_cuota}/aprobar")
@@ -429,7 +475,8 @@ def aprobar_inscripcion(id_cuota: int, admin_id: int = Form(...), admin_nombres:
     try:
         cursor.execute("SELECT c.ID_Evento, c.Monto_Total, p.Nombres, e.Nombre_Evento FROM Cuotas_Participantes c JOIN Participantes p ON c.ID_Participante = p.ID_Participante JOIN Eventos e ON c.ID_Evento = e.ID_Evento WHERE c.ID_Cuota = %s", (id_cuota,))
         cuota = cursor.fetchone()
-        if not cuota: raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+        if not cuota: 
+            raise HTTPException(status_code=404, detail="Inscripción no encontrada")
         id_evento, monto, nombre_inscrito, nombre_evento = cuota
         
         cursor.execute("UPDATE Cuotas_Participantes SET Estado = 'Pagado', Abono = Monto_Total, Saldo_Pendiente = 0 WHERE ID_Cuota = %s", (id_cuota,))
@@ -455,7 +502,8 @@ def rechazar_inscripcion(id_cuota: int, admin_id: int = Form(...), admin_nombres
         if info:
             cursor.execute("DELETE FROM Respuestas_Inscripcion WHERE ID_Participante = %s AND ID_Evento = %s", (info[2], info[3]))
         db.commit()
-        if info: registrar_auditoria(admin_id, admin_nombres, "Anulación", f"Rechazó comprobante de {info[0]} para '{info[1]}'.")
+        if info: 
+            registrar_auditoria(admin_id, admin_nombres, "Anulación", f"Rechazó comprobante de {info[0]} para '{info[1]}'.")
         return {"mensaje": "Inscripción anulada."}
     except Exception as e:
         db.rollback()
@@ -488,13 +536,19 @@ def reporte_financiero_evento(id_evento: int):
     cursor = db.cursor(dictionary=True)
     try:
         cursor.execute("SELECT SUM(Monto) as Total_Ingresos FROM Transacciones_Financieras WHERE ID_Evento = %s AND Tipo = 'Ingreso'", (id_evento,))
-        ingresos = cursor.fetchone()['Total_Ingresos'] or 0.0
+        ing_row = cursor.fetchone()
+        ingresos = ing_row['Total_Ingresos'] if ing_row and ing_row['Total_Ingresos'] else 0.0
+
         cursor.execute("SELECT SUM(Monto) as Total_Egresos FROM Transacciones_Financieras WHERE ID_Evento = %s AND Tipo = 'Egreso'", (id_evento,))
-        egresos = cursor.fetchone()['Total_Egresos'] or 0.0
+        egr_row = cursor.fetchone()
+        egresos = egr_row['Total_Egresos'] if egr_row and egr_row['Total_Egresos'] else 0.0
+
         cursor.execute("SELECT p.Nombres, c.Abono, c.Estado FROM Cuotas_Participantes c JOIN Participantes p ON c.ID_Participante = p.ID_Participante WHERE c.ID_Evento = %s", (id_evento,))
         inscritos = cursor.fetchall()
+        
         cursor.execute("SELECT Categoria, Monto, Fecha FROM Transacciones_Financieras WHERE ID_Evento = %s AND Tipo = 'Egreso' ORDER BY Fecha DESC", (id_evento,))
         gastos = cursor.fetchall()
+
         return {"ingresos": float(ingresos), "egresos": float(egresos), "balance": float(ingresos - egresos), "inscritos": inscritos, "gastos": gastos}
     finally:
         cursor.close()

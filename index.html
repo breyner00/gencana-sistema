@@ -199,6 +199,16 @@
                     <select id="reg-month"><option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select>
                 </div>
             </div>
+
+            <!-- CAJA DE TÉRMINOS Y CONDICIONES -->
+            <div class="input-group" style="margin-top: 15px; background: #252525; padding: 15px; border-radius: 8px; border: 1px dashed var(--primary-orange);">
+                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; color: white; font-weight: normal; font-size: 13px; margin: 0;">
+                    <input type="checkbox" id="reg-terminos" style="width: 20px; height: 20px; margin: 0; margin-top: 2px; cursor: pointer;">
+                    <span>He leído, entiendo y acepto los <a href="#" style="color: var(--primary-orange); text-decoration: underline; font-weight: bold;" onclick="document.getElementById('modal-terminos').style.display='flex'; return false;">Términos y Condiciones de Uso</a> y la Política de Privacidad de GENCANA.</span>
+                </label>
+            </div>
+            <!-- FIN CAJA DE TÉRMINOS -->
+
             <button class="btn" onclick="registrarNuevoUsuario()">Registrarme</button>
             <button class="btn btn-danger" style="margin-top: 10px;" onclick="toggleView('login-form', 'register-form')">Volver</button>
         </div>
@@ -228,11 +238,14 @@
                 
                 <!-- BOTÓN MÁGICO PARA ADMINISTRADORES -->
                 <button id="btn-acceso-admin" class="btn" style="width: 100%; margin-top: 15px; padding: 10px; font-size: 14px; display: none;"></button>
+                
+                <!-- NUEVO BOTÓN PARA EL ESCÁNER (SOLO ADMINS) -->
+                <button id="btn-escaner-admin" class="btn" style="width: 100%; margin-top: 10px; padding: 10px; font-size: 14px; display: none; background: linear-gradient(135deg, #ff6f00, #d32f2f);" onclick="window.open('escaner.html', '_blank')">📷 Escáner Asistencia</button>
             </div>
         </div>
     </div>
 
-    <!-- 3.1 VISTA DEL ADMINISTRADOR DE COMUNICACIÓN (NUEVO PANEL) -->
+    <!-- 3. VISTA DEL ADMINISTRADOR DE COMUNICACIÓN (NUEVO PANEL) -->
     <div id="admin-comunicacion-view" class="container hidden">
         <div class="nav-bar" style="border-bottom-color: var(--accent-purple);">
             <span>📢 Panel Creativo - Comunicación</span>
@@ -272,7 +285,7 @@
                 </select>
 
                 <div id="caja-subir-local-evento" class="input-group">
-                    <label style="color: #aaa; font-size: 13px;">Selecciona un archivo (Máx 15MB recomendado):</label>
+                    <label style="color: #aaa; font-size: 13px;">Selecciona un archivo:</label>
                     <input type="file" id="admin-evento-archivo-com" accept="image/*,video/*">
                 </div>
                 
@@ -307,7 +320,7 @@
                 </select>
 
                 <div id="caja-subir-local" class="input-group">
-                    <label style="color: #aaa; font-size: 13px;">Selecciona un archivo de tu PC o Celular (Máx 15MB):</label>
+                    <label style="color: #aaa; font-size: 13px;">Selecciona un archivo de tu PC o Celular:</label>
                     <input type="file" id="admin-pub-archivo-com" accept="image/*,video/*">
                 </div>
                 
@@ -447,9 +460,50 @@
         </div>
     </div>
 
+    <!-- MODAL DE TÉRMINOS Y CONDICIONES -->
+    <div id="modal-terminos" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 3000; display: none;">
+        <div style="background: var(--card-bg); padding: 25px; border-radius: 10px; width: 90%; max-width: 600px; border: 1px solid var(--primary-orange); max-height: 85vh; overflow-y: auto; color: #ddd; font-size: 13px; line-height: 1.5; text-align: justify;">
+            <h2 style="color: var(--primary-orange); margin-top: 0; text-align: center;">Términos y Condiciones</h2>
+            <p style="text-align: center; color: #aaa; margin-bottom: 20px;">Última actualización: Noviembre 2026</p>
+            
+            <h3 style="color: white; font-size: 15px;">1. Edad Mínima y Registro</h3>
+            <ul style="padding-left: 20px;">
+                <li><strong>Edad mínima:</strong> Debes tener al menos 15 años cumplidos para registrarte de forma autónoma.</li>
+                <li><strong>Menores de 15 años:</strong> Tu registro debe ser autorizado y supervisado por tu padre, madre o representante legal.</li>
+                <li><strong>Veracidad:</strong> El "Contacto de Emergencia" proporcionado garantiza que tu tutor es real y está al tanto de tu participación.</li>
+            </ul>
+
+            <h3 style="color: white; font-size: 15px;">2. Privacidad y Protección de Datos</h3>
+            <ul style="padding-left: 20px;">
+                <li><strong>Uso interno:</strong> Tus datos se utilizarán exclusiva y estrictamente para fines logísticos, seguridad, control de asistencia y comunicación pastoral.</li>
+                <li><strong>Confidencialidad:</strong> Tu información no será vendida, alquilada ni compartida con terceros.</li>
+            </ul>
+
+            <h3 style="color: white; font-size: 15px;">3. Inscripciones y Pagos (Economía)</h3>
+            <ul style="padding-left: 20px;">
+                <li><strong>Validación:</strong> Subir un comprobante no garantiza tu inscripción hasta que sea validado en el sistema por Economía.</li>
+                <li><strong>Falsificación:</strong> Subir comprobantes falsos o editados resultará en la suspensión inmediata de tu cuenta.</li>
+                <li><strong>Reembolsos:</strong> No se realizarán devoluciones por inasistencia una vez validado el pago, salvo motivos de fuerza mayor.</li>
+            </ul>
+
+            <h3 style="color: white; font-size: 15px;">4. Conducta en el Muro</h3>
+            <ul style="padding-left: 20px;">
+                <li><strong>Valores:</strong> Queda prohibido publicar contenido ofensivo, violento o contrario a los principios de GENCANA.</li>
+                <li><strong>Moderación:</strong> Administración se reserva el derecho de eliminar publicaciones y suspender cuentas infractoras.</li>
+            </ul>
+
+            <h3 style="color: white; font-size: 15px;">5. Credencial QR</h3>
+            <ul style="padding-left: 20px;">
+                <li><strong>Intransferible:</strong> Tu código QR es estrictamente personal. Prestarlo para fingir asistencias será sancionado.</li>
+            </ul>
+
+            <button class="btn" style="width: 100%; margin-top: 20px; font-size: 15px;" onclick="document.getElementById('modal-terminos').style.display='none'">He leído y entiendo los términos</button>
+        </div>
+    </div>
+
     <!-- ================= SCRIPTS ================= -->
     <script>
-   const API_URL = "https://gencana-sistema-production.up.railway.app";
+        const API_URL = "https://gencana-sistema-production.up.railway.app";
         let usuarioActualID = null;
         let usuarioActualNombres = null;
 
@@ -515,6 +569,11 @@
         }
 
         async function registrarNuevoUsuario() {
+            const terminosAceptados = document.getElementById('reg-terminos').checked;
+            if (!terminosAceptados) {
+                return alert("⚠️ Debes leer y aceptar los Términos y Condiciones para poder unirte a la plataforma de GENCANA.");
+            }
+
             const prefijo = document.getElementById('prefix-celular').innerText;
             let celularBase = document.getElementById('reg-celular').value.trim();
             let emergenciaBase = document.getElementById('reg-emergencia').value.trim();
@@ -587,6 +646,16 @@
                     cargarPublicacionesEnMuro();
 
                     const btnAdmin = document.getElementById('btn-acceso-admin');
+                    const btnEscaner = document.getElementById('btn-escaner-admin');
+
+                    // Lógica para mostrar el botón del Escáner a CUALQUIER administrador
+                    if (usuario.nivel_acceso && usuario.nivel_acceso.includes('Admin')) {
+                        btnEscaner.style.display = 'block';
+                    } else {
+                        btnEscaner.style.display = 'none';
+                    }
+
+                    // Lógica para el botón de Panel de Control específico de cada rol
                     if (usuario.nivel_acceso === 'Admin General') {
                         btnAdmin.style.display = 'block';
                         btnAdmin.style.background = '#ffd700'; btnAdmin.style.color = 'black';
@@ -954,7 +1023,6 @@
                 const eventos = await res.json();
                 let html = '';
                 eventos.forEach(ev => { 
-                    // Limpieza aplicada aquí para el panel admin
                     const fechaLimpia = ev.Fecha_Inicio.split('T')[0];
                     html += `<div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;"><div><strong>${ev.Nombre_Evento}</strong> (${fechaLimpia})</div><button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarEvento(${ev.ID_Evento})">Eliminar</button></div>`; 
                 });
@@ -1017,7 +1085,6 @@
                         }
                     }
                     
-                    // Limpieza aplicada aquí para el muro principal
                     const fechaLimpia = ev.Fecha_Inicio.split('T')[0];
                     
                     html += `<div class="feed-post"><h4 style="color: var(--primary-orange); margin-top:0;">${ev.Nombre_Evento}</h4><p>📅 ${fechaLimpia} | 💰 $${ev.Costo}</p><p>📋 ${ev.Requisitos}</p>${mediaHtml}<button class="btn btn-blue" style="margin-top: 10px; width:100%;" onclick="abrirModalInscripcion(${ev.ID_Evento}, '${ev.Nombre_Evento}')">📋 Inscribirme y Subir Pago</button></div>`;
