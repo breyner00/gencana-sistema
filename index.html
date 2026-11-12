@@ -449,7 +449,7 @@
 
     <!-- ================= SCRIPTS ================= -->
     <script>
-        const API_URL = "https://gencana-sistema-production.up.railway.app";
+       const API_URL = "https://gencana-sistema-production.up.railway.app";
         let usuarioActualID = null;
         let usuarioActualNombres = null;
 
@@ -903,10 +903,7 @@
             formData.append("admin_nombres", usuarioActualNombres);
 
             const archivoInput = document.getElementById('admin-evento-archivo-com');
-            // NUEVA VALIDACIÓN: Limitar a 15 MB (15 * 1024 * 1024 bytes)
-            if (archivoInput.files[0] && archivoInput.files[0].size > 15728640) {
-                return alert("⚠️ El archivo es demasiado pesado. El límite máximo es 15 MB.");
-            }
+            
             if (archivoInput.files[0]) formData.append("archivo", archivoInput.files[0]);
 
             const res = await fetch(`${API_URL}/admin/eventos/`, { method: "POST", body: formData });
@@ -930,11 +927,6 @@
             const descripcion = document.getElementById('admin-pub-desc-com').value.trim();
             const enlaceExterno = document.getElementById('admin-pub-enlace-com').value.trim();
             const archivoInput = document.getElementById('admin-pub-archivo-com');
-
-            // NUEVA VALIDACIÓN: Limitar a 15 MB
-            if (archivoInput.files[0] && archivoInput.files[0].size > 15728640) {
-                return alert("⚠️ El archivo multimedia supera los 15 MB. Súbelo a YouTube/Drive y pega el enlace externo.");
-            }
 
             if (!titulo || !descripcion) return alert("Título y descripción son obligatorios.");
 
@@ -1099,11 +1091,6 @@
             const archivoInput = document.getElementById('modal-comprobante');
             if (!archivoInput.files[0]) return alert("Falta el comprobante de pago.");
             
-            // NUEVA VALIDACIÓN: Limitar a 5 MB (5 * 1024 * 1024 bytes)
-            if (archivoInput.files[0].size > 5242880) {
-                return alert("⚠️ La foto del comprobante es muy pesada. Máximo 5 MB.");
-            }
-
             const respuestas = {};
             let formularioValido = true;
             const campos = document.querySelectorAll('.respuesta-usuario');
@@ -1133,11 +1120,6 @@
         async function subirFotoPerfil(event) {
             const archivo = event.target.files[0];
             if (!archivo) return;
-            
-            // NUEVA VALIDACIÓN: Limitar a 5 MB
-            if (archivo.size > 5242880) {
-                return alert("⚠️ La foto de perfil es demasiado pesada. El límite es 5 MB.");
-            }
 
             const formData = new FormData(); 
             formData.append("archivo", archivo);
