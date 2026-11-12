@@ -281,7 +281,7 @@ def listar_inscritos_evento(id_evento: int):
             FROM Cuotas_Participantes c
             JOIN Participantes p ON c.ID_Participante = p.ID_Participante
             LEFT JOIN Asistencia a ON a.ID_Participante = p.ID_Participante AND a.ID_Evento = c.ID_Evento
-            WHERE c.ID_Evento = %s
+            WHERE c.ID_Evento = %s AND (c.Estado = 'Pagado' OR c.Estado = 'Pendiente' OR c.Estado = 'Deuda')
             ORDER BY p.Nombres ASC
         """
         cursor.execute(query, (id_evento,))

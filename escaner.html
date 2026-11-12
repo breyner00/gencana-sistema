@@ -189,7 +189,9 @@
                 eventos.forEach(ev => {
                     const option = document.createElement('option');
                     option.value = ev.ID_Evento;
-                    option.textContent = `${ev.Nombre_Evento} (${ev.Fecha_Inicio})`;
+                    // Limpieza aplicada aquí para el escáner
+                    const fechaLimpia = ev.Fecha_Inicio.split('T')[0];
+                    option.textContent = `${ev.Nombre_Evento} (${fechaLimpia})`;
                     select.appendChild(option);
                 });
             } catch (error) {
