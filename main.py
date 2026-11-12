@@ -88,11 +88,9 @@ def obtener_estadisticas_dashboard():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     try:
-        # Distribución de Participantes por Sede
         cursor.execute("SELECT Sede, COUNT(*) as Total FROM Participantes GROUP BY Sede")
         sedes = cursor.fetchall()
         
-        # Finanzas Globales (Ingresos Totales vs Egresos Totales)
         cursor.execute("SELECT Tipo, SUM(Monto) as Total FROM Transacciones_Financieras GROUP BY Tipo")
         finanzas = cursor.fetchall()
         
@@ -108,26 +106,69 @@ def exportar_reporte_csv():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     try:
+        # 1. Consultar Participantes
         cursor.execute("""
             SELECT Nombres, Numero_Identificacion, Correo, Celular, Provincia, Sede, Rol, Apostolado, Fecha_Ingreso 
             FROM Participantes 
             ORDER BY Sede ASC, Nombres ASC
         """)
         participantes = cursor.fetchall()
+
+        # 2. Consultar Estadísticas de Eventos y Finanzas
+        cursor.execute("""
+            SELECT 
+                e.Nombre_Evento,
+                e.Fecha_Inicio,
+                (SELECT COUNT(*) FROM Cuotas_Participantes c WHERE c.ID_Evento = e.ID_Evento AND c.Estado != 'Anulado') AS Total_Inscritos,
+                (SELECT COALESCE(SUM(Monto), 0) FROM Transacciones_Financieras t WHERE t.ID_Evento = e.ID_Evento AND t.Tipo = 'Ingreso') AS Ingresos_Totales,
+                (SELECT COALESCE(SUM(Monto), 0) FROM Transacciones_Financieras t WHERE t.ID_Evento = e.ID_Evento AND t.Tipo = 'Egreso') AS Gastos_Totales
+            FROM Eventos e
+            ORDER BY e.Fecha_Inicio DESC
+        """)
+        eventos = cursor.fetchall()
         
         output = io.StringIO()
-        # Agregar BOM para que Excel y Google Sheets reconozcan tildes y caracteres UTF-8
+        # Agregar BOM para compatibilidad de tildes en Excel y Google Sheets
         output.write('\ufeff')
         
-        campos = ["Nombres", "Numero_Identificacion", "Correo", "Celular", "Provincia", "Sede", "Rol", "Apostolado", "Fecha_Ingreso"]
-        writer = csv.DictWriter(output, fieldnames=campos, delimiter=';')
-        writer.writeheader()
+        writer = csv.writer(output, delimiter=';')
         
+        # --- BLOQUE 1: PARTICIPANTES ---
+        writer.writerow(["=== BASE DE DATOS DE PARTICIPANTES GENCANA ==="])
+        campos_p = ["Nombres", "Numero_Identificacion", "Correo", "Celular", "Provincia", "Sede", "Rol", "Apostolado", "Fecha_Ingreso"]
+        writer.writerow(campos_p)
         for p in participantes:
-            writer.writerow(p)
+            writer.writerow([p[c] for c in campos_p])
+            
+        # Espaciador
+        writer.writerow([])
+        writer.writerow([])
+        writer.writerow([])
+        
+        # --- BLOQUE 2: EVENTOS Y FINANZAS ---
+        writer.writerow(["=== REPORTE FINANCIERO Y LOGÍSTICO POR EVENTO ==="])
+        campos_e = ["Nombre del Evento", "Fecha de Inicio", "Total de Inscritos", "Ingresos Totales", "Gastos Totales", "Balance Neto"]
+        writer.writerow(campos_e)
+        
+        for e in eventos:
+            ingresos = float(e['Ingresos_Totales'])
+            gastos = float(e['Gastos_Totales'])
+            balance = ingresos - gastos
+            
+            # Limpiar hora de la fecha si la tiene
+            fecha_str = str(e['Fecha_Inicio']).split(' ')[0] if e['Fecha_Inicio'] else "Sin fecha"
+            
+            writer.writerow([
+                e['Nombre_Evento'],
+                fecha_str,
+                e['Total_Inscritos'],
+                f"${ingresos:.2f}",
+                f"${gastos:.2f}",
+                f"${balance:.2f}"
+            ])
             
         output.seek(0)
-        headers = {'Content-Disposition': 'attachment; filename="Reporte_General_GENCANA.csv"'}
+        headers = {'Content-Disposition': 'attachment; filename="Reporte_Maestro_GENCANA.csv"'}
         return StreamingResponse(output, media_type="text/csv", headers=headers)
     finally:
         cursor.close()
@@ -319,7 +360,6 @@ def listar_eventos():
 
 @app.get("/eventos/{id_evento}/inscritos")
 def listar_inscritos_evento(id_evento: int):
-    """Obtiene la lista de personas inscritas a un evento y su estado de asistencia."""
     db = get_db()
     cursor = db.cursor(dictionary=True)
     try:
