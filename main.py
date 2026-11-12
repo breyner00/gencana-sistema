@@ -1,4 +1,4 @@
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from datetime import datetime, date, timedelta
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +9,8 @@ import time
 import qrcode
 import mysql.connector
 import os
+import csv
+import io
 
 # Asegurar carpetas base
 os.makedirs("uploads", exist_ok=True)
@@ -52,7 +54,7 @@ class UsuarioUpdate(BaseModel):
     admin_id: int; admin_nombres: str
 
 # ==========================================
-# MÓDULO DE AUDITORÍA
+# MÓDULO DE AUDITORÍA Y DASHBOARD
 # ==========================================
 def registrar_auditoria(id_usuario, nombres, accion, detalle):
     db = get_db()
@@ -80,6 +82,56 @@ def obtener_auditoria():
     cursor.close()
     db.close()
     return resultados
+
+@app.get("/admin/dashboard/stats")
+def obtener_estadisticas_dashboard():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    try:
+        # Distribución de Participantes por Sede
+        cursor.execute("SELECT Sede, COUNT(*) as Total FROM Participantes GROUP BY Sede")
+        sedes = cursor.fetchall()
+        
+        # Finanzas Globales (Ingresos Totales vs Egresos Totales)
+        cursor.execute("SELECT Tipo, SUM(Monto) as Total FROM Transacciones_Financieras GROUP BY Tipo")
+        finanzas = cursor.fetchall()
+        
+        return {"sedes": sedes, "finanzas": finanzas}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        db.close()
+
+@app.get("/admin/exportar/csv")
+def exportar_reporte_csv():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT Nombres, Numero_Identificacion, Correo, Celular, Provincia, Sede, Rol, Apostolado, Fecha_Ingreso 
+            FROM Participantes 
+            ORDER BY Sede ASC, Nombres ASC
+        """)
+        participantes = cursor.fetchall()
+        
+        output = io.StringIO()
+        # Agregar BOM para que Excel y Google Sheets reconozcan tildes y caracteres UTF-8
+        output.write('\ufeff')
+        
+        campos = ["Nombres", "Numero_Identificacion", "Correo", "Celular", "Provincia", "Sede", "Rol", "Apostolado", "Fecha_Ingreso"]
+        writer = csv.DictWriter(output, fieldnames=campos, delimiter=';')
+        writer.writeheader()
+        
+        for p in participantes:
+            writer.writerow(p)
+            
+        output.seek(0)
+        headers = {'Content-Disposition': 'attachment; filename="Reporte_General_GENCANA.csv"'}
+        return StreamingResponse(output, media_type="text/csv", headers=headers)
+    finally:
+        cursor.close()
+        db.close()
 
 # ==========================================
 # GESTIÓN DE PARTICIPANTES Y AUTENTICACIÓN

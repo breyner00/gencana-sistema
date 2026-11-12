@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Comunidad GENCANA</title>
+    <!-- Incluir librería para Gráficos Nativos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-dark: #121212;
@@ -49,6 +51,7 @@
         .btn-danger { background: var(--accent-red); }
         .btn-blue { background: var(--accent-blue); }
         .btn-purple { background: var(--accent-purple); }
+        .btn-green { background: #28a745; }
 
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 5px; color: var(--primary-orange); font-weight: 600; }
@@ -129,6 +132,10 @@
         .profile-pic-container img { width: 100%; height: 100%; object-fit: cover; }
         
         .pregunta-dinamica { background: #2f2f2f; padding: 15px; border-radius: 8px; border: 1px dashed #555; margin-bottom: 10px; }
+        
+        .chart-container {
+            flex: 1; min-width: 300px; background: #1e1e1e; border: 1px solid #333; padding: 15px; border-radius: 8px;
+        }
     </style>
 </head>
 <body>
@@ -276,7 +283,6 @@
             <div class="input-group"><label>Tarifas o Precios Alternativos</label><input type="text" id="admin-tarifas-evento-com" placeholder="Ej. General: $5.00 | VIP: $10.00"></div>
             <div class="input-group"><label>Requisitos</label><textarea id="admin-requisitos-evento-com" placeholder="Ej. Llevar sleeping bag, Biblia..."></textarea></div>
             
-            <!-- NUEVO SELECTOR MULTIMEDIA PARA EVENTOS -->
             <div style="background: #2a2a2a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px;">
                 <label style="color: var(--primary-orange); font-weight: bold; margin-bottom: 10px; display: block;">Banner o Video Promocional del Evento</label>
                 <select id="tipo-multimedia-evento" style="width: 100%; padding: 10px; background: #1e1e1e; color: white; border: 1px solid #555; border-radius: 6px; margin-bottom: 15px;" onchange="cambiarTipoMultimediaEvento()">
@@ -294,9 +300,7 @@
                     <input type="text" id="admin-evento-enlace-com" placeholder="https://www.youtube.com/watch?v=...">
                 </div>
             </div>
-            <!-- FIN NUEVO SELECTOR -->
             
-            <!-- CONSTRUCTOR DINÁMICO DE GOOGLE FORMS -->
             <hr style="border-color: #444; margin: 25px 0;">
             <h4 style="color: white;">📝 Constructor de Formulario de Inscripción</h4>
             <p style="font-size: 13px; color: #aaa;">Añade preguntas personalizadas que los participantes deberán responder antes de subir su comprobante de pago.</p>
@@ -351,6 +355,23 @@
                 <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
             </div>
         </div>
+        
+        <!-- NUEVA SECCIÓN DASHBOARD ANALÍTICO -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="color: #ffd700; margin: 0;">📈 Dashboard Analítico</h3>
+            <button class="btn btn-green" onclick="window.open(`${API_URL}/admin/exportar/csv`, '_blank')">📊 Descargar Reporte (Abrir en Google Sheets)</button>
+        </div>
+        <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+            <div class="chart-container">
+                <canvas id="chartSedes" height="200"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="chartFinanzas" height="200"></canvas>
+            </div>
+        </div>
+        <hr style="border-color: #333; margin: 25px 0;">
+        <!-- FIN DASHBOARD -->
+
         <h3 style="color: #ffd700;">👥 Gestión de Usuarios</h3>
         <p style="font-size: 14px; color: #aaa;">Aquí puedes ver y editar a todos los miembros registrados, cambiar sus roles o apostolados, y corregir sus datos.</p>
         
@@ -445,8 +466,6 @@
             <h3 style="margin-top: 0; color: var(--primary-orange);">Completar Inscripción</h3>
             <p id="modal-evento-nombre" style="font-weight: bold;"></p>
             <input type="hidden" id="modal-evento-id">
-            
-            <!-- Aquí el sistema inyectará las preguntas dinámicas creadas por Comunicación -->
             <div id="modal-formulario-dinamico" style="margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px;"></div>
 
             <div class="input-group">
@@ -506,6 +525,8 @@
         const API_URL = "https://gencana-sistema-production.up.railway.app";
         let usuarioActualID = null;
         let usuarioActualNombres = null;
+        let chartSedes = null;
+        let chartFinanzas = null;
 
         function toggleView(showId, hideId) {
             document.getElementById(hideId).classList.add('hidden');
@@ -648,19 +669,22 @@
                     const btnAdmin = document.getElementById('btn-acceso-admin');
                     const btnEscaner = document.getElementById('btn-escaner-admin');
 
-                    // Lógica para mostrar el botón del Escáner a CUALQUIER administrador
                     if (usuario.nivel_acceso && usuario.nivel_acceso.includes('Admin')) {
                         btnEscaner.style.display = 'block';
                     } else {
                         btnEscaner.style.display = 'none';
                     }
 
-                    // Lógica para el botón de Panel de Control específico de cada rol
                     if (usuario.nivel_acceso === 'Admin General') {
                         btnAdmin.style.display = 'block';
                         btnAdmin.style.background = '#ffd700'; btnAdmin.style.color = 'black';
                         btnAdmin.innerText = '👑 Abrir Panel de Control General';
-                        btnAdmin.onclick = () => { toggleView('admin-general-view', 'member-view'); cargarUsuariosGeneral(); cargarAuditoria(); };
+                        btnAdmin.onclick = () => { 
+                            toggleView('admin-general-view', 'member-view'); 
+                            cargarUsuariosGeneral(); 
+                            cargarAuditoria(); 
+                            cargarDashboardGencana(); // Carga las gráficas al entrar
+                        };
                     } 
                     else if (usuario.nivel_acceso === 'Admin Economía') {
                         btnAdmin.style.display = 'block';
@@ -693,6 +717,77 @@
             document.getElementById('auth-view').classList.remove('hidden');
             document.getElementById('login-id').value = "";
             usuarioActualID = null; usuarioActualNombres = null;
+        }
+
+        // ==========================================
+        // LÓGICA DEL DASHBOARD ANALÍTICO
+        // ==========================================
+        async function cargarDashboardGencana() {
+            try {
+                const response = await fetch(`${API_URL}/admin/dashboard/stats`);
+                if (!response.ok) return;
+                const data = await response.json();
+
+                // 1. Gráfica de Sedes (Doughnut)
+                const labelsSedes = data.sedes.map(s => s.Sede || 'Desconocido');
+                const valuesSedes = data.sedes.map(s => s.Total);
+                
+                if (chartSedes) chartSedes.destroy();
+                const ctxSedes = document.getElementById('chartSedes').getContext('2d');
+                chartSedes = new Chart(ctxSedes, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labelsSedes,
+                        datasets: [{
+                            data: valuesSedes,
+                            backgroundColor: ['#ff6f00', '#2979ff', '#d32f2f', '#4ade80', '#9c27b0', '#ffd700', '#00bcd4', '#ffeb3b'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Participantes por Sede', color: 'white', font: { size: 16 } },
+                            legend: { position: 'right', labels: { color: '#ccc' } }
+                        }
+                    }
+                });
+
+                // 2. Gráfica de Finanzas (Bar)
+                const labelsFin = data.finanzas.map(f => f.Tipo);
+                const valuesFin = data.finanzas.map(f => f.Total);
+                
+                if (chartFinanzas) chartFinanzas.destroy();
+                const ctxFinanzas = document.getElementById('chartFinanzas').getContext('2d');
+                chartFinanzas = new Chart(ctxFinanzas, {
+                    type: 'bar',
+                    data: {
+                        labels: labelsFin,
+                        datasets: [{
+                            label: 'Monto ($)',
+                            data: valuesFin,
+                            backgroundColor: labelsFin.map(l => l === 'Ingreso' ? '#28a745' : '#d32f2f'),
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: true, text: 'Balance Histórico (Ingresos vs Egresos)', color: 'white', font: { size: 16 } },
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { ticks: { color: '#ccc' }, grid: { color: '#333' } },
+                            x: { ticks: { color: '#ccc' }, grid: { display: false } }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error al cargar los gráficos del dashboard:", error);
+            }
         }
 
         // ==========================================
