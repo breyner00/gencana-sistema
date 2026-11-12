@@ -48,8 +48,6 @@ class UsuarioUpdate(BaseModel):
     nombres: str; correo: str; celular: str; rol: str; apostolado: str; nivel_acceso: str
     admin_id: int; admin_nombres: str
 
-# El modelo EventoCreate se mantiene como referencia, pero usamos Form/File en la ruta
-
 # ==========================================
 # MÓDULO DE AUDITORÍA
 # ==========================================
@@ -225,10 +223,13 @@ def crear_evento(
     elif enlace_externo:
         tipo_evento = enlace_externo
 
+    # 🟢 CORRECCIÓN APLICADA AQUÍ: Manejo seguro de la fecha vacía
+    fecha_fin_db = fecha_fin if fecha_fin and fecha_fin.strip() != "" else None
+
     query = """INSERT INTO Eventos (Nombre_Evento, Tipo_Evento, Costo, Tarifas, Fecha_Inicio, Fecha_Fin, Requisitos, Formulario_JSON) 
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
     try:
-        cursor.execute(query, (nombre_evento, tipo_evento, costo, tarifas, fecha_inicio, fecha_fin, requisitos, formulario_json))
+        cursor.execute(query, (nombre_evento, tipo_evento, costo, tarifas, fecha_inicio, fecha_fin_db, requisitos, formulario_json))
         db.commit()
         registrar_auditoria(admin_id, admin_nombres, "Creación de Evento", f"Creó el evento '{nombre_evento}'.")
         return {"mensaje": "Evento creado exitosamente"}
@@ -377,6 +378,10 @@ def inscribirse_evento(
         raise HTTPException(status_code=400, detail="Ya te encuentras inscrito en este evento.")
         
     nombre_archivo = f"{int(time.time())}_{comprobante.filename}"
+    
+    # 🟢 CORRECCIÓN APLICADA AQUÍ: Creación de la carpeta comprobantes
+    os.makedirs("uploads/comprobantes", exist_ok=True)
+    
     with open(f"uploads/comprobantes/{nombre_archivo}", "wb") as buffer: shutil.copyfileobj(comprobante.file, buffer)
     url_comprobante = f"https://gencana-sistema-production.up.railway.app/uploads/comprobantes/{nombre_archivo}"
     
