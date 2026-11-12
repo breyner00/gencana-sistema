@@ -449,7 +449,7 @@
 
     <!-- ================= SCRIPTS ================= -->
     <script>
-       const API_URL = "https://gencana-sistema-production.up.railway.app";
+   const API_URL = "https://gencana-sistema-production.up.railway.app";
         let usuarioActualID = null;
         let usuarioActualNombres = null;
 
@@ -576,7 +576,6 @@
                     usuarioActualNombres = usuario.nombres;
                     document.getElementById('auth-view').classList.add('hidden');
                     
-                    // TODOS VAN AL MURO PRIMERO
                     document.getElementById('member-view').classList.remove('hidden');
                     document.getElementById('user-name').innerText = usuario.nombres;
                     document.getElementById('qr-wrapper').innerHTML = `<img src="${API_URL}/qrcodes/${usuario.id_participante}" alt="QR" style="width: 100%; height: 100%; object-fit: contain;">`;
@@ -587,7 +586,6 @@
                     cargarEventosEnMuro();
                     cargarPublicacionesEnMuro();
 
-                    // LÓGICA DE BOTONES ADMINISTRATIVOS
                     const btnAdmin = document.getElementById('btn-acceso-admin');
                     if (usuario.nivel_acceso === 'Admin General') {
                         btnAdmin.style.display = 'block';
@@ -955,7 +953,11 @@
             if (res.ok) {
                 const eventos = await res.json();
                 let html = '';
-                eventos.forEach(ev => { html += `<div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;"><div><strong>${ev.Nombre_Evento}</strong> (${ev.Fecha_Inicio})</div><button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarEvento(${ev.ID_Evento})">Eliminar</button></div>`; });
+                eventos.forEach(ev => { 
+                    // Limpieza aplicada aquí para el panel admin
+                    const fechaLimpia = ev.Fecha_Inicio.split('T')[0];
+                    html += `<div style="background: #252525; padding: 10px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;"><div><strong>${ev.Nombre_Evento}</strong> (${fechaLimpia})</div><button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="eliminarEvento(${ev.ID_Evento})">Eliminar</button></div>`; 
+                });
                 document.getElementById('admin-lista-eventos').innerHTML = html || '<p>No hay eventos creados.</p>';
             }
         }
@@ -1014,7 +1016,11 @@
                              mediaHtml = `<img class="media-content" src="${ev.Tipo_Evento}">`;
                         }
                     }
-                    html += `<div class="feed-post"><h4 style="color: var(--primary-orange); margin-top:0;">${ev.Nombre_Evento}</h4><p>📅 ${ev.Fecha_Inicio} | 💰 $${ev.Costo}</p><p>📋 ${ev.Requisitos}</p>${mediaHtml}<button class="btn btn-blue" style="margin-top: 10px; width:100%;" onclick="abrirModalInscripcion(${ev.ID_Evento}, '${ev.Nombre_Evento}')">📋 Inscribirme y Subir Pago</button></div>`;
+                    
+                    // Limpieza aplicada aquí para el muro principal
+                    const fechaLimpia = ev.Fecha_Inicio.split('T')[0];
+                    
+                    html += `<div class="feed-post"><h4 style="color: var(--primary-orange); margin-top:0;">${ev.Nombre_Evento}</h4><p>📅 ${fechaLimpia} | 💰 $${ev.Costo}</p><p>📋 ${ev.Requisitos}</p>${mediaHtml}<button class="btn btn-blue" style="margin-top: 10px; width:100%;" onclick="abrirModalInscripcion(${ev.ID_Evento}, '${ev.Nombre_Evento}')">📋 Inscribirme y Subir Pago</button></div>`;
                 });
                 document.getElementById('feed-eventos-container').innerHTML = html || '<p>No hay eventos próximos.</p>';
             }
@@ -1056,7 +1062,6 @@
             document.getElementById('modal-evento-nombre').innerText = "Evento: " + nombreEvento;
             document.getElementById('modal-comprobante').value = ""; 
             
-            // Renderizar Formulario Dinámico
             const contenedorFormulario = document.getElementById('modal-formulario-dinamico');
             contenedorFormulario.innerHTML = ""; 
             
