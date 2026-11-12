@@ -232,33 +232,6 @@
         </div>
     </div>
 
-    <!-- 3. VISTA TEMPORAL DE EVENTOS Y MULTIMEDIA (ADMIN999) -->
-    <div id="admin-view" class="container hidden">
-        <div class="nav-bar" style="border-bottom-color: var(--accent-red);">
-            <span>🛡️ Creador de Eventos y Multimedia (Comunicación)</span>
-            <button class="btn btn-danger" style="padding: 6px 12px; margin: 0;" onclick="cerrarSesion()">Salir</button>
-        </div>
-        <h3>Crear Evento con Publicidad</h3>
-        <div class="input-group"><label>Nombre del Evento</label><input type="text" id="admin-nombre-evento"></div>
-        <div class="input-group"><label>Tarifas o Precios</label><input type="text" id="admin-tarifas-evento"></div>
-        <div class="input-group"><label>Costo Base ($)</label><input type="number" id="admin-costo-evento" value="0.00"></div>
-        <div class="input-group"><label>Fecha Inicio</label><input type="date" id="admin-fecha-inicio"></div>
-        <div class="input-group"><label>Fecha Fin</label><input type="date" id="admin-fecha-fin"></div>
-        <div class="input-group"><label>Requisitos</label><textarea id="admin-requisitos-evento"></textarea></div>
-        <div class="input-group"><label>Imagen URL</label><input type="text" id="admin-imagen-evento"></div>
-        <button class="btn" onclick="publicarEvento()">Publicar Evento</button>
-        <hr style="border-color: #333; margin: 25px 0;">
-        <h3>📢 Compartir Contenido Multimedia</h3>
-        <div class="input-group"><label>Título</label><input type="text" id="admin-pub-titulo"></div>
-        <div class="input-group"><label>Descripción</label><textarea id="admin-pub-desc"></textarea></div>
-        <div class="input-group"><label>Subir Archivo</label><input type="file" id="admin-pub-archivo" accept="image/*,video/*"></div>
-        <button class="btn btn-blue" onclick="publicarContenido()">Compartir en el Muro</button>
-        <hr style="border-color: #333; margin: 25px 0;">
-        <h3>Eventos Activos</h3><div id="admin-lista-eventos"></div>
-        <hr style="border-color: #333; margin: 25px 0;">
-        <h3>Contenido Activo</h3><div id="admin-lista-publicaciones"></div>
-    </div>
-
     <!-- 3.1 VISTA DEL ADMINISTRADOR DE COMUNICACIÓN (NUEVO PANEL) -->
     <div id="admin-comunicacion-view" class="container hidden">
         <div class="nav-bar" style="border-bottom-color: var(--accent-purple);">
