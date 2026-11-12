@@ -215,7 +215,9 @@ def crear_evento(
     
     if archivo and archivo.filename:
         os.makedirs("uploads", exist_ok=True)
-        nombre_unico = f"{int(time.time())}_{archivo.filename}"
+        # Acorta el nombre del archivo para que no rompa el límite de caracteres de la DB
+        extension = archivo.filename.split('.')[-1] if '.' in archivo.filename else 'jpg'
+        nombre_unico = f"ev_{int(time.time())}.{extension}"
         ruta_guardado = f"uploads/{nombre_unico}"
         with open(ruta_guardado, "wb") as buffer:
             shutil.copyfileobj(archivo.file, buffer)
@@ -223,13 +225,14 @@ def crear_evento(
     elif enlace_externo:
         tipo_evento = enlace_externo
 
-    # 🟢 CORRECCIÓN APLICADA AQUÍ: Manejo seguro de la fecha vacía
-    fecha_fin_db = fecha_fin if fecha_fin and fecha_fin.strip() != "" else None
+    # Limpia la 'T' de la fecha (si viene del frontend) para que MySQL no la rechace
+    fecha_inicio_db = fecha_inicio.split('T')[0] if fecha_inicio else None
+    fecha_fin_db = fecha_fin.split('T')[0] if fecha_fin and fecha_fin.strip() != "" else None
 
     query = """INSERT INTO Eventos (Nombre_Evento, Tipo_Evento, Costo, Tarifas, Fecha_Inicio, Fecha_Fin, Requisitos, Formulario_JSON) 
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
     try:
-        cursor.execute(query, (nombre_evento, tipo_evento, costo, tarifas, fecha_inicio, fecha_fin_db, requisitos, formulario_json))
+        cursor.execute(query, (nombre_evento, tipo_evento, costo, tarifas, fecha_inicio_db, fecha_fin_db, requisitos, formulario_json))
         db.commit()
         registrar_auditoria(admin_id, admin_nombres, "Creación de Evento", f"Creó el evento '{nombre_evento}'.")
         return {"mensaje": "Evento creado exitosamente"}
@@ -284,7 +287,9 @@ def crear_publicacion(
     tipo = "texto"
 
     if archivo and archivo.filename:
-        nombre_unico = f"{int(time.time())}_{archivo.filename}"
+        # También acortamos el nombre de las publicaciones por seguridad
+        extension = archivo.filename.split('.')[-1] if '.' in archivo.filename else 'jpg'
+        nombre_unico = f"pub_{int(time.time())}.{extension}"
         ruta_guardado = f"uploads/{nombre_unico}"
         with open(ruta_guardado, "wb") as buffer: shutil.copyfileobj(archivo.file, buffer)
         url_multimedia = f"https://gencana-sistema-production.up.railway.app/uploads/{nombre_unico}"
@@ -379,7 +384,7 @@ def inscribirse_evento(
         
     nombre_archivo = f"{int(time.time())}_{comprobante.filename}"
     
-    # 🟢 CORRECCIÓN APLICADA AQUÍ: Creación de la carpeta comprobantes
+    # Se crea la carpeta para evitar que colapse la inscripción
     os.makedirs("uploads/comprobantes", exist_ok=True)
     
     with open(f"uploads/comprobantes/{nombre_archivo}", "wb") as buffer: shutil.copyfileobj(comprobante.file, buffer)
